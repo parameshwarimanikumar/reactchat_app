@@ -174,7 +174,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
 
             <div className="chat-input">
                 <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} placeholder="Type a messages..." />
-
+                <button onClick={handleSendMessage}>Send</button>
                 <label htmlFor="file-upload">
                     <img src={Img} alt="Upload" width="30" height="30" />
                 </label>
@@ -186,7 +186,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                 
                 {selectedFile && <button onClick={removeSelectedFile}>❌</button>}
 
-                <button onClick={handleSendMessage}>Send</button>
+               
             </div>
         </div>
     );
