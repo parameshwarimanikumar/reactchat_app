@@ -1,0 +1,319 @@
+:root {
+    --primary-bg: #eef1f6;
+    --sidebar-bg: #50647d;
+    --chat-bg: #f7f9fc;
+    --white: #fff;
+    --border-color: #b0c4de;
+    --message-sent-bg: #dcf8c6;
+    --message-received-bg: #f1f0f0;
+    --text-color: #333; 
+    --gray: gray;
+    --shadow: 0px 5px 15px rgba(0, 0, 0, 0.1);
+    --hover-bg: rgba(255, 255, 255, 0.1);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    scroll-behavior: smooth;
+}
+
+body {
+    font-family: 'Inter', sans-serif;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
+}
+
+/* ================= Layout ================= */
+.home {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    background: linear-gradient(to right, #d4eafc, #c2e9fb);
+}
+
+/* ================= Main Container ================= */
+.container {
+    display: flex;
+    width: 90%;
+    max-width: 1400px;
+    height: 90vh;
+    border-radius: 15px;
+    overflow: hidden;
+    background: var(--white);
+    box-shadow: var(--shadow);
+}
+
+/* ================= Sidebar ================= */
+.sidebar {
+    flex: 1;
+    background: var(--sidebar-bg);
+    color: var(--white);
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid var(--border-color);
+    overflow-y: auto;
+    height: 100%;
+    scrollbar-width: thin;
+}
+
+.sidebar::-webkit-scrollbar {
+    width: 8px;
+}
+
+.sidebar::-webkit-scrollbar-thumb {
+    background-color: #bbb;
+    border-radius: 4px;
+}
+
+.sidebar::-webkit-scrollbar-thumb:hover {
+    background: #999;
+}
+
+/* Sidebar Header */
+.sidebar__header {
+    padding: 20px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+    text-align: center;
+    font-weight: 600;
+    font-size: 18px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Sidebar User List */
+.sidebar__user {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar__user:hover {
+    background: var(--hover-bg);
+}
+
+/* Sidebar User Image */
+.user-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin-right: 10px;
+}
+
+/* ================= Chat Section ================= */
+.chat-container {
+    flex: 3;
+    display: flex;
+    flex-direction: column;
+    height: 90vh;
+    overflow: hidden;
+    background: var(--chat-bg);
+}
+
+/* Chat Header */
+.chat-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+    background: var(--white);
+}
+
+/* Chat Messages */
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background: #f6f2f2;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    scrollbar-width: thin;
+}
+
+.chat-messages::-webkit-scrollbar {
+    width: 8px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 10px;
+}
+
+.chat-messages::-webkit-scrollbar-thumb:hover {
+    background: #666;
+}
+
+/* ================= Messages ================= */
+.messages-container {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* Message Bubble */
+.message {
+    padding: 12px;
+    border-radius: 12px;
+    max-width: 60%;
+    word-wrap: break-word;
+    font-size: 14px;
+    position: relative;
+    line-height: 1.5;
+}
+
+/* Sent Messages (align right) */
+.sent {
+    align-self: flex-end;
+    background-color: var(--message-sent-bg);
+    border-radius: 12px 12px 0 12px;
+    padding: 12px;
+    text-align: right;
+    word-wrap: break-word;
+}
+
+/* Received Messages (align left) */
+.received {
+    align-self: flex-start;
+    background-color: var(--message-received-bg);
+    border-radius: 12px 12px 12px 0;
+    padding: 12px;
+    text-align: left;
+    word-wrap: break-word;
+    border: 1px solid #ddd;
+}
+
+/* Message Image */
+.message-img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    object-fit: cover;
+}
+
+/* Timestamp */
+.timestamp {
+    font-size: 10px;
+    color: var(--gray);
+    display: block;
+    margin-top: 5px;
+    text-align: right;
+}
+
+/* Delete Button for Sent Messages */
+.sent .delete-btn {
+    background: none;
+    border: none;
+    color: red;
+    font-size: 14px;
+    cursor: pointer;
+    position: absolute;
+    right: -20px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: none;
+    z-index: 2;
+}
+
+.sent:hover .delete-btn {
+    display: inline-block;
+}
+
+/* Chat Input */
+.chat-input {
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    background: var(--white);
+    border-top: 1px solid #ddd;
+    gap: 10px;
+}
+
+.chat-input input {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    outline: none;
+    border-radius: 20px;
+    background: #eef3f5;
+    min-height: 40px;
+    box-sizing: border-box;
+    transition: border-color 0.2s ease-in-out;
+}
+
+.chat-input input:focus {
+    border-color: rgb(80, 80, 216);
+    background: #fff;
+}
+
+.chat-input button {
+    padding: 12px 18px;
+    border: none;
+    background: rgb(80, 80, 216);
+    color: white;
+    cursor: pointer;
+    width: fit-content;
+    border-radius: 8px;
+    transition: background-color 0.2s ease-in-out;
+}
+
+.chat-input button:hover {
+    background: #4a5fc1;
+}
+
+/* Navbar */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 20px;
+    background: var(--sidebar-bg);
+    color: white;
+    gap: 5px;
+}
+
+.navbar img {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.navbar button {
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--hover-bg);
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+/* Typing Indicator */
+.typing-indicator {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+}
+
+.typing-indicator span {
+    width: 6px;
+    height: 6px;
+    background: gray;
+    border-radius: 50%;
+    animation: typing 1.5s infinite ease-in-out;
+}
+
+@keyframes typing {
+    0%, 100% { opacity: 0.3; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.2); }
+}

@@ -1,0 +1,2 @@
+myproject/media/uploads/eclipse-cpp-2023-12-R-win32-x86_64.zip filter=lfs diff=lfs merge=lfs -text
+*.zip filter=lfs diff=lfs merge=lfs -text
