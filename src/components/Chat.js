@@ -196,7 +196,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                         rel="noopener noreferrer"
                         className="file-link"
                       >
-                        📎 {file_url.split("/").pop()}
+                        {file_url.split("/").pop()}
                       </a>
                     )
                   ) : (
@@ -262,7 +262,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
           />
         )}
         {selectedFile && !preview && (
-          <p className="file-name">📎 {selectedFile.name}</p>
+          <p className="file-name">{selectedFile.name}</p>
         )}
         {selectedFile && (
           <button onClick={removeSelectedFile}>❌</button>

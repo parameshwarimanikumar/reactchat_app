@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import apiClient from '../services/apiService'; // Ensure you have an API service setup
-import '../pages/dashboard.css'; // Corrected CSS import
+import apiClient from '../services/apiService';
+import '../pages/dashboard.css';
 
 const Navbar = () => {
   const [currentUser, setCurrentUser] = useState(null);
@@ -22,7 +22,7 @@ const Navbar = () => {
       try {
         const response = await apiClient.get('/current_user/');
         console.log("✅ Fetched User:", response.data);
-        setCurrentUser(response.data); // Store full user object
+        setCurrentUser(response.data);
       } catch (error) {
         console.error('🔴 Error fetching current user:', error);
         if (error.response?.status === 401) {
@@ -41,14 +41,14 @@ const Navbar = () => {
   }, [navigate]);
 
   const handleLogout = () => {
-    localStorage.clear(); // Clears all stored data
-    navigate('/'); // Redirects to login
+    localStorage.clear();
+    navigate('/');
   };
 
   return (
     <div className="navbar">
-      
-      <div className="user">
+      {/* Left Side: User Info */}
+      <div className="user-info">
         {loading ? (
           <span>Loading...</span>
         ) : error ? (
@@ -63,12 +63,14 @@ const Navbar = () => {
               />
             )}
             <span>{currentUser.username}</span>
-            <button onClick={handleLogout}>Logout</button>
           </>
         ) : (
           <span>Guest</span>
         )}
       </div>
+
+      {/* Right Side: Logout Button */}
+      <button className="logout-btn" onClick={handleLogout}>Logout</button>
     </div>
   );
 };
