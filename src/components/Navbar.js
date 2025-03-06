@@ -47,7 +47,7 @@ const Navbar = () => {
 
   return (
     <div className="navbar">
-      <span className="logo">Chat</span>
+      
       <div className="user">
         {loading ? (
           <span>Loading...</span>

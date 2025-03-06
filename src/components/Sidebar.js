@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
 import Navbar from "./Navbar";
 import Search from "./Search";
@@ -7,7 +7,7 @@ import "../pages/dashboard.css";
 
 const Sidebar = ({ onSelectUser, currentUser }) => {
   const [users, setUsers] = useState([]);
-  const [filteredUsers, setFilteredUsers] = useState([]);
+  const [searchTerm, setSearchTerm] = useState(""); // Store search term
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const sidebarRef = useRef(null); // Reference for scrolling
@@ -18,25 +18,26 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
       setError(null);
       try {
         const token = localStorage.getItem("access_token");
-        if (!token) throw new Error("No token found. Please log in.");
+        if (!token) {
+          setError("Authentication required. Redirecting to login...");
+          setTimeout(() => (window.location.href = "/login"), 2000);
+          return;
+        }
 
         const response = await axios.get("http://localhost:8000/api/users/", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (!Array.isArray(response.data)) {
-          throw new Error("Invalid data format from server.");
+          throw new Error("Unexpected server response.");
         }
 
-        const filtered = currentUser
-          ? response.data.filter((user) => user.username !== currentUser)
-          : response.data;
-
-        setUsers(filtered);
-        setFilteredUsers(filtered);
+        setUsers(response.data.filter((user) => user.username !== currentUser));
       } catch (err) {
-        console.error("🔴 Failed to fetch users:", err.response?.data || err.message);
-        setError("Failed to load users. Please try again later.");
+        console.error("🔴 Failed to fetch users:", err);
+        setError(err.response?.status === 401 
+          ? "Unauthorized. Please log in again." 
+          : "Failed to load users. Try again later.");
       } finally {
         setLoading(false);
       }
@@ -45,18 +46,15 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
     fetchUsers();
   }, [currentUser]);
 
-  // Debounced Search Handler (Prevents excessive re-renders)
-  const handleSearch = useCallback(
-    (searchTerm) => {
-      const trimmedTerm = searchTerm.trim().toLowerCase();
-      setFilteredUsers(
-        trimmedTerm
-          ? users.filter((user) => user.username.toLowerCase().includes(trimmedTerm))
-          : users
-      );
-    },
-    [users]
-  );
+  const handleSearch = useCallback((term) => {
+    setSearchTerm(term.trim().toLowerCase());
+  }, []);
+
+  const filteredUsers = useMemo(() => {
+    return searchTerm
+      ? users.filter((user) => user.username.toLowerCase().includes(searchTerm))
+      : users;
+  }, [users, searchTerm]);
 
   return (
     <div className="sidebar">
