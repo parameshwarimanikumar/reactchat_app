@@ -1,8 +1,21 @@
 from rest_framework import serializers
-from django.conf import settings
 from django.core.files.storage import default_storage
 from django.db.models import Q
-from .models import CustomUser, Message
+from .models import CustomUser, Message, ChatGroup, GroupMessage
+
+class ChatGroupSerializer(serializers.ModelSerializer):
+    members = serializers.PrimaryKeyRelatedField(queryset=CustomUser.objects.all(), many=True)
+
+    class Meta:
+        model = ChatGroup
+        fields = ["id", "name", "members", "created_at"]
+
+class GroupMessageSerializer(serializers.ModelSerializer):
+    sender_username = serializers.CharField(source="sender.username", read_only=True)
+
+    class Meta:
+        model = GroupMessage
+        fields = ["id", "group", "sender", "sender_username", "content", "file", "timestamp"]
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
@@ -32,7 +45,7 @@ class UserSerializer(serializers.ModelSerializer):
         if last_message:
             return {
                 "text": last_message.content if last_message.content else "File Attached",
-                "timestamp": last_message.timestamp.strftime("%I:%M %p")
+                "timestamp": last_message.timestamp.strftime("%I:%M %p") if last_message.timestamp else None
             }
         return None
 

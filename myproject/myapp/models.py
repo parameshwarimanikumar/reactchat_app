@@ -47,6 +47,14 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username or self.email
 
+class ChatGroup(models.Model):
+    name = models.CharField(max_length=255, unique=True)
+    members = models.ManyToManyField(CustomUser, related_name="chat_groups")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return self.name
+
 class Message(models.Model):
     sender = models.ForeignKey(CustomUser, related_name="sent_messages", on_delete=models.CASCADE)
     receiver = models.ForeignKey(CustomUser, related_name="received_messages", on_delete=models.CASCADE)
@@ -57,3 +65,14 @@ class Message(models.Model):
     def __str__(self):
         preview = (self.content[:20] + "...") if self.content else "File Attached"
         return f"{self.sender.username} → {self.receiver.username}: {preview}"
+
+class GroupMessage(models.Model):
+    group = models.ForeignKey(ChatGroup, related_name="messages", on_delete=models.CASCADE)
+    sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    content = models.TextField(blank=True, null=True)
+    file = models.FileField(upload_to="group_uploads/", blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        preview = (self.content[:20] + "...") if self.content else "File Attached"
+        return f"{self.sender.username} → {self.group.name}: {preview}"

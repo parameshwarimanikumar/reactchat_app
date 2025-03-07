@@ -5,15 +5,16 @@ import Search from "./Search";
 import Chats from "./Chats";
 import "../pages/dashboard.css";
 
-const Sidebar = ({ onSelectUser, currentUser }) => {
+const Sidebar = ({ onSelectUser, onSelectGroup, currentUser }) => {
   const [users, setUsers] = useState([]);
-  const [searchTerm, setSearchTerm] = useState(""); // Store search term
+  const [groups, setGroups] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const sidebarRef = useRef(null); // Reference for scrolling
+  const sidebarRef = useRef(null);
 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchUsersAndGroups = async () => {
       setLoading(true);
       setError(null);
       try {
@@ -24,27 +25,33 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
           return;
         }
 
-        const response = await axios.get("http://localhost:8000/api/users/", {
+        // Fetch Users
+        const userResponse = await axios.get("http://localhost:8000/api/users/", {
           headers: { Authorization: `Bearer ${token}` },
         });
 
-        if (!Array.isArray(response.data)) {
+        // Fetch Groups
+        const groupResponse = await axios.get("http://localhost:8000/api/groups/", {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+
+        if (!Array.isArray(userResponse.data) || !Array.isArray(groupResponse.data)) {
           throw new Error("Unexpected server response.");
         }
 
-        // Corrected: Compare user.id, not username
-        setUsers(response.data.filter((user) => user.id !== currentUser?.id));
+        setUsers(userResponse.data.filter((user) => user.id !== currentUser?.id));
+        setGroups(groupResponse.data);
       } catch (err) {
-        console.error("🔴 Failed to fetch users:", err);
+        console.error("🔴 Failed to fetch data:", err);
         setError(err.response?.status === 401 
           ? "Unauthorized. Please log in again." 
-          : "Failed to load users. Try again later.");
+          : "Failed to load users and groups. Try again later.");
       } finally {
         setLoading(false);
       }
     };
 
-    fetchUsers();
+    fetchUsersAndGroups();
   }, [currentUser]);
 
   const handleSearch = useCallback((term) => {
@@ -57,6 +64,12 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
       : users;
   }, [users, searchTerm]);
 
+  const filteredGroups = useMemo(() => {
+    return searchTerm
+      ? groups.filter((group) => group.name.toLowerCase().includes(searchTerm))
+      : groups;
+  }, [groups, searchTerm]);
+
   return (
     <div className="sidebar">
       <Navbar />
@@ -64,13 +77,19 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
 
       <div className="sidebar-users" ref={sidebarRef}>
         {loading ? (
-          <p className="loading-text">Loading users...</p>
+          <p className="loading-text">Loading users and groups...</p>
         ) : error ? (
           <p className="error-text">{error}</p>
-        ) : filteredUsers.length === 0 ? (
-          <p className="no-users">No users found.</p>
+        ) : filteredUsers.length === 0 && filteredGroups.length === 0 ? (
+          <p className="no-users">No users or groups found.</p>
         ) : (
-          <Chats users={filteredUsers} onSelectUser={onSelectUser} currentUser={currentUser} />
+          <Chats 
+            users={filteredUsers} 
+            groups={filteredGroups} 
+            onSelectUser={onSelectUser} 
+            onSelectGroup={onSelectGroup}
+            currentUser={currentUser} 
+          />
         )}
       </div>
     </div>
