@@ -1,7 +1,8 @@
 import logging
 from django.contrib.auth import authenticate
 from django.shortcuts import get_object_or_404
-from django.db.models import OuterRef, Subquery, Q
+from django.db.models import OuterRef, Subquery, Q, Value
+from django.db.models.functions import Coalesce
 from rest_framework.decorators import api_view, permission_classes, parser_classes
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework.response import Response
@@ -64,7 +65,7 @@ def user_list(request):
         Q(sender=OuterRef('id'), receiver=request.user) | Q(sender=request.user, receiver=OuterRef('id'))
     ).order_by('-timestamp').values('timestamp')[:1]
 
-    users = users.annotate(last_message_time=Subquery(last_message_subquery))
+    users = users.annotate(last_message_time=Coalesce(Subquery(last_message_subquery), Value(None)))
 
     serializer = UserSerializer(users, many=True, context={'request': request})
     return Response(serializer.data)
@@ -75,23 +76,25 @@ def user_list(request):
 def current_user(request):
     """Returns the authenticated user's details."""
     user = request.user
-    profile_picture_url = request.build_absolute_uri(user.profile_picture.url) if user.profile_picture else None
+    profile_picture_url = request.build_absolute_uri(user.profile_picture.url) if (
+        user.profile_picture and hasattr(user.profile_picture, 'url')
+    ) else None
 
     return Response({
         'username': user.username,
         'profile_picture': profile_picture_url
     })
 
-# Get Messages Between Users
+# Get Messages Between Users with Pagination
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def get_messages(request, user_id):
-    """Fetch messages between the authenticated user and another user."""
+    """Fetch messages between the authenticated user and another user, paginated."""
     other_user = get_object_or_404(CustomUser, id=user_id)
 
     messages = Message.objects.filter(
         Q(sender=request.user, receiver=other_user) | Q(sender=other_user, receiver=request.user)
-    ).select_related('sender', 'receiver').order_by('timestamp')
+    ).select_related('sender', 'receiver').order_by('-timestamp')[:50]  # Fetch latest 50 messages
 
     serializer = MessageSerializer(messages, many=True, context={'request': request})
     return Response(serializer.data, status=status.HTTP_200_OK)
@@ -131,7 +134,7 @@ def delete_message(request, message_id):
         return error_response("You can only delete messages that you sent.", status.HTTP_403_FORBIDDEN)
 
     message.delete()
-    return Response({"message": "Message deleted successfully."}, status=status.HTTP_204_NO_CONTENT)
+    return Response({"message": "Message deleted successfully."}, status=status.HTTP_200_OK)
 
 # Update Profile Picture
 @api_view(['POST'])

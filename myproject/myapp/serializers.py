@@ -1,40 +1,40 @@
 from rest_framework import serializers
 from django.conf import settings
-from django.db.models import Q  # ✅ Import this for filtering queries
+from django.core.files.storage import default_storage
+from django.db.models import Q
 from .models import CustomUser, Message
 
 class UserSerializer(serializers.ModelSerializer):
     password = serializers.CharField(write_only=True, required=True)
-    last_message_time = serializers.DateTimeField(read_only=True, format="%I:%M %p", required=False)
     last_message = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'email', 'password', 'profile_picture', 'last_message_time', 'last_message']
+        fields = ['id', 'username', 'email', 'password', 'profile_picture', 'last_message']
 
     def create(self, validated_data):
-        """Override create method to hash password before saving."""
+        """Hash password before saving user."""
         profile_picture = validated_data.pop('profile_picture', None)
-        user = CustomUser(
-            username=validated_data['username'],
-            email=validated_data['email']
-        )
+        username = validated_data.get('username') or validated_data['email'].split('@')[0]
+
+        user = CustomUser(username=username, email=validated_data['email'])
         user.set_password(validated_data['password'])
+        
         if profile_picture:
             user.profile_picture = profile_picture
         user.save()
         return user
 
     def get_last_message(self, obj):
-        """Get the last message sent/received by the user."""
-        last_message = Message.objects.filter(
-            Q(sender=obj) | Q(receiver=obj)  # ✅ Use `Q` from `django.db.models`
-        ).order_by('-timestamp').first()
+        """Retrieve the latest message involving the user."""
+        last_message = Message.objects.filter(Q(sender=obj) | Q(receiver=obj)).order_by('-timestamp').first()
 
-        return {
-            "text": last_message.content if last_message else None,
-            "timestamp": last_message.timestamp.strftime("%I:%M %p") if last_message else None
-        }
+        if last_message:
+            return {
+                "text": last_message.content if last_message.content else "File Attached",
+                "timestamp": last_message.timestamp.strftime("%I:%M %p")
+            }
+        return None
 
 class UpdateProfilePictureSerializer(serializers.ModelSerializer):
     class Meta:
@@ -48,11 +48,13 @@ class MessageSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Message
-        fields = '__all__'
+        fields = ['id', 'sender', 'receiver', 'content', 'file', 'timestamp', 'sender_username', 'receiver_username', 'file_url']
 
     def get_file_url(self, obj):
-        """Return absolute file URL if attached, otherwise None."""
+        """Return the full file URL or None if no file is attached."""
         if obj.file:
             request = self.context.get('request')
-            return request.build_absolute_uri(obj.file.url) if request else f"{settings.MEDIA_URL}{obj.file.name}"
+            if request:
+                return request.build_absolute_uri(obj.file.url)
+            return default_storage.url(obj.file.name)
         return None

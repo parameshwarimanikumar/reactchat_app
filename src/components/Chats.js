@@ -5,25 +5,43 @@ const Chats = ({ users = [], loading, error, onSelectUser, currentUser }) => {
   if (loading) return <p className="loading">Loading users...</p>;
   if (error) return <p className="error">Error: {error}</p>;
 
+  // Function to format timestamps like WhatsApp
+  const formatTimestamp = (timestamp) => {
+    if (!timestamp) return "";
+
+    const messageDate = new Date(timestamp);
+    if (isNaN(messageDate.getTime())) return "";
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    if (messageDate >= today) {
+      return messageDate.toLocaleTimeString("en-US", {
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false, // Use `true` for AM/PM format
+      });
+    } else if (messageDate >= yesterday) {
+      return "Yesterday";
+    } else {
+      return messageDate.toLocaleDateString("en-GB"); // "03/03/2025"
+    }
+  };
+
   return (
     <div className="chats">
       {users.length === 0 ? (
         <p className="no-users">No users available</p>
       ) : (
         users.map((user) => {
-          console.log("User:", user.username, "Last Message:", user.last_message);
-
           const lastMessage = user.last_message?.text || "No messages yet";
           const isSentByUser = user.last_message?.sender?.id === currentUser?.id;
-          const messageTime =
-            user.last_message?.timestamp &&
-            !isNaN(Date.parse(user.last_message.timestamp))
-              ? new Intl.DateTimeFormat("en-US", {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                  timeZone: "UTC",
-                }).format(new Date(user.last_message.timestamp))
-              : "";
+
+          // Get formatted timestamp
+          const messageTime = formatTimestamp(user.last_message?.timestamp);
 
           return (
             <div
@@ -47,12 +65,11 @@ const Chats = ({ users = [], loading, error, onSelectUser, currentUser }) => {
                 <span className="username">{user.username}</span>
                 <p className={`lastMessage ${isSentByUser ? "sentMessage" : "receivedMessage"}`}>
                   {isSentByUser ? `You: ${lastMessage}` : lastMessage}
-                  {messageTime && <span className="messageTime">{messageTime}</span>}
                 </p>
               </div>
 
-              {/* Timestamp */}
-              
+              {/* Show Last Message Time */}
+              <span className="messageTime">{messageTime}</span>
             </div>
           );
         })

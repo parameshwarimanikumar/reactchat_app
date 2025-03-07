@@ -147,6 +147,15 @@ body {
   text-overflow: ellipsis;
 }
 
+/* Show timestamps in sidebar */
+.userChat .messageTime {
+  display: block;
+  font-size: 12px;
+  color: #ccc;
+  margin-left: auto;
+}
+
+
 
 
 /* ================= Chat Section ================= */
@@ -365,11 +374,6 @@ body {
 .logout-btn:hover {
   background-color: #24556c;
 }
-
-
-
-
-
 
 /* Typing Indicator */
 .typing-indicator {

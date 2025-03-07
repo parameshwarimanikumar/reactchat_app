@@ -32,7 +32,8 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
           throw new Error("Unexpected server response.");
         }
 
-        setUsers(response.data.filter((user) => user.username !== currentUser));
+        // Corrected: Compare user.id, not username
+        setUsers(response.data.filter((user) => user.id !== currentUser?.id));
       } catch (err) {
         console.error("🔴 Failed to fetch users:", err);
         setError(err.response?.status === 401 
@@ -69,7 +70,7 @@ const Sidebar = ({ onSelectUser, currentUser }) => {
         ) : filteredUsers.length === 0 ? (
           <p className="no-users">No users found.</p>
         ) : (
-          <Chats users={filteredUsers} onSelectUser={onSelectUser} />
+          <Chats users={filteredUsers} onSelectUser={onSelectUser} currentUser={currentUser} />
         )}
       </div>
     </div>
