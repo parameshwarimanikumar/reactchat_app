@@ -8,49 +8,62 @@ class CustomUserAdmin(UserAdmin):
     list_display = ("id", "email", "username", "is_staff", "is_active")
     list_filter = ("is_staff", "is_active")
     ordering = ("id",)
+    search_fields = ("email", "username")
+    readonly_fields = ("id", "date_joined", "last_login")
+
     fieldsets = (
         (None, {"fields": ("email", "password")}),
         ("Personal Info", {"fields": ("username", "profile_picture")}),
         ("Permissions", {"fields": ("is_staff", "is_active", "is_superuser", "groups", "user_permissions")}),
-        ("Important dates", {"fields": ("last_login", "date_joined")}),
+        ("Important Dates", {"fields": ("last_login", "date_joined")}),
     )
+
     add_fieldsets = (
         (None, {
             "classes": ("wide",),
             "fields": ("email", "password1", "password2", "is_staff", "is_active"),
         }),
     )
-    search_fields = ("email", "username")
 
 # ChatGroup Admin
 class ChatGroupAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "created_at")
+    list_display = ("id", "name", "admin", "created_at")
     search_fields = ("name",)
+    list_filter = ("created_at",)
     filter_horizontal = ("members",)
+    readonly_fields = ("id", "created_at")
+    actions = ["delete_selected"]
+
+    fieldsets = (
+        (None, {"fields": ("name", "admin")}),
+        ("Details", {"fields": ("members", "created_at")}),
+    )
 
 # GroupMessage Admin
 class GroupMessageAdmin(admin.ModelAdmin):
     list_display = ("id", "group", "sender", "short_content", "timestamp")
-    list_filter = ("group", "sender")
+    list_filter = ("group", "sender", "timestamp")
     search_fields = ("content", "sender__username", "group__name")
+    empty_value_display = "—"
+    readonly_fields = ("id", "timestamp")
 
+    @admin.display(description="Content Preview")
     def short_content(self, obj):
-        if obj.content:
-            return obj.content[:20] + "..." if len(obj.content) > 20 else obj.content
-        return "File Attached"
-    short_content.short_description = "Content Preview"
+        content = obj.content or "File Attached"
+        return content[:20] + "..." if len(content) > 20 else content
 
 # Private Message Admin
 class MessageAdmin(admin.ModelAdmin):
     list_display = ("id", "sender", "receiver", "short_content", "timestamp")
-    list_filter = ("sender", "receiver")
+    list_filter = ("sender", "receiver", "timestamp")
     search_fields = ("content", "sender__username", "receiver__username")
+    empty_value_display = "—"
+    readonly_fields = ("id", "timestamp")
 
+    @admin.display(description="Content Preview")
     def short_content(self, obj):
-        if obj.content:
-            return obj.content[:20] + "..." if len(obj.content) > 20 else obj.content
-        return "File Attached"
-    short_content.short_description = "Content Preview"
+        content = obj.content or "File Attached"
+        return content[:20] + "..." if len(content) > 20 else content
 
 # Registering Models in Django Admin
 admin.site.register(CustomUser, CustomUserAdmin)

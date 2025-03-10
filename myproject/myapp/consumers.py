@@ -19,7 +19,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             text_data_json = json.loads(text_data)
             message = text_data_json.get("message", "")
             sender_id = text_data_json.get("sender_id", "")
-            recipient_id = text_data_json.get("recipient_id")  # Optional
+            recipient_id = text_data_json.get("recipient_id", None)  # Optional
 
             if not message or not sender_id:
                 return  # Ignore empty messages

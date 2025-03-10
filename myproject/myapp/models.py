@@ -31,6 +31,8 @@ class CustomUserManager(BaseUserManager):
 
         if not password:
             raise ValueError("Superuser must have a password.")
+        if not extra_fields.get("username"):
+            raise ValueError("Superuser must have a username.")
 
         return self.create_user(email, password, **extra_fields)
 
@@ -40,7 +42,7 @@ class CustomUser(AbstractUser):
     username = models.CharField(max_length=150, unique=True)
 
     USERNAME_FIELD = "email"
-    REQUIRED_FIELDS = []
+    REQUIRED_FIELDS = ["username"]
 
     objects = CustomUserManager()
 
@@ -49,8 +51,11 @@ class CustomUser(AbstractUser):
 
 class ChatGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
+    icon = models.ImageField(upload_to="group_icons/", null=True, blank=True, default="default_group.jpg")
     members = models.ManyToManyField(CustomUser, related_name="chat_groups")
+    admin = models.ForeignKey(CustomUser, related_name="admin_groups", on_delete=models.CASCADE)  # ✅ Fix: Added admin field
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name

@@ -415,6 +415,12 @@ body {
   display: flex;
 }
 
+.dropdown-menu {
+  max-width: 200px;
+  font-size: 14px;
+}
+
+
 .group-list {
   width: 30%;
   border-right: 1px solid #ccc;

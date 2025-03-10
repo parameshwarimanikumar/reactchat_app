@@ -22,6 +22,7 @@ const Dashboard = () => {
   return (
     <div className='home'>
       <div className='container'>
+        {/* ✅ Sidebar contains Navbar inside it now */}
         <Sidebar onSelectUser={handleSelectUser} />
 
         {/* Check if a user is selected before rendering the Chat component */}

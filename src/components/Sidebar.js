@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
-import Navbar from "./Navbar";
+import Navbar from "./Navbar";  // ✅ Import Navbar
 import Search from "./Search";
 import Chats from "./Chats";
 import "../pages/dashboard.css";
@@ -72,7 +72,9 @@ const Sidebar = ({ onSelectUser, onSelectGroup, currentUser }) => {
 
   return (
     <div className="sidebar">
-      <Navbar />
+      {/* ✅ Navbar is now inside Sidebar, appearing at the top */}
+      <Navbar /> 
+
       <Search onSearch={handleSearch} />
 
       <div className="sidebar-users" ref={sidebarRef}>
