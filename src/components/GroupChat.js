@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import axios from "axios";
 
 const GroupChat = ({ currentUser }) => {
@@ -6,30 +6,55 @@ const GroupChat = ({ currentUser }) => {
   const [selectedGroup, setSelectedGroup] = useState(null);
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
-  const [socket, setSocket] = useState(null);
+  const [error, setError] = useState(null);
+  const socketRef = useRef(null);
 
+  // ✅ Fetch groups
   useEffect(() => {
-    axios.get("/api/groups/")
-      .then(response => setGroups(response.data))
-      .catch(error => console.error("Error fetching groups:", error));
+    axios.get("http://localhost:8000/api/groups/")
+      .then(response => {
+        setGroups(response.data);
+        setError(null);
+      })
+      .catch(error => {
+        console.error("Error fetching groups:", error);
+        setError("Failed to load groups. Please try again.");
+      });
   }, []);
 
+  // ✅ Fetch past messages when switching groups
   useEffect(() => {
-    if (selectedGroup) {
-      const ws = new WebSocket(`ws://localhost:8000/ws/chat/group/${selectedGroup.id}/`);
-      setSocket(ws);
+    if (!selectedGroup) return;
+    
+    axios.get(`http://localhost:8000/api/groups/${selectedGroup.id}/messages/`)
+      .then(response => setMessages(response.data))
+      .catch(error => console.error("Error fetching messages:", error));
 
-      ws.onmessage = (event) => {
-        const messageData = JSON.parse(event.data);
-        setMessages((prevMessages) => [...prevMessages, messageData]);
-      };
-
-      return () => ws.close();
+    // Close previous WebSocket before opening a new one
+    if (socketRef.current) {
+      socketRef.current.close();
     }
+
+    const socketUrl = `ws://localhost:8000/ws/chat/group/${selectedGroup.id}/`;
+    socketRef.current = new WebSocket(socketUrl);
+
+    socketRef.current.onmessage = (event) => {
+      const messageData = JSON.parse(event.data);
+      setMessages((prevMessages) => [...prevMessages, messageData]);
+    };
+
+    socketRef.current.onclose = () => console.log("WebSocket disconnected");
+
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+      }
+    };
   }, [selectedGroup]);
 
+  // ✅ Send a new message via WebSocket
   const handleSendMessage = () => {
-    if (!newMessage.trim() || !socket) return;
+    if (!newMessage.trim() || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
 
     const messageData = {
       group: selectedGroup.id,
@@ -37,7 +62,7 @@ const GroupChat = ({ currentUser }) => {
       text: newMessage,
     };
 
-    socket.send(JSON.stringify(messageData));
+    socketRef.current.send(JSON.stringify(messageData));
     setNewMessage("");
   };
 
@@ -45,8 +70,13 @@ const GroupChat = ({ currentUser }) => {
     <div className="group-chat">
       <div className="group-list">
         <h3>Groups</h3>
+        {error && <p className="error-message">{error}</p>}
         {groups.map((group) => (
-          <div key={group.id} onClick={() => setSelectedGroup(group)} className="group">
+          <div 
+            key={group.id} 
+            onClick={() => setSelectedGroup(group)} 
+            className={`group ${selectedGroup?.id === group.id ? "active" : ""}`}
+          >
             {group.name}
           </div>
         ))}

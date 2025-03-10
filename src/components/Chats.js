@@ -9,11 +9,12 @@ const Chats = ({
   currentUser 
 }) => {
 
+  // Format timestamps for better readability
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return "";
+    if (!timestamp) return " ";
 
     const messageDate = new Date(timestamp);
-    if (isNaN(messageDate.getTime())) return "";
+    if (isNaN(messageDate.getTime())) return " ";
 
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -39,80 +40,89 @@ const Chats = ({
 
   return (
     <div className="chats">
-      {/* Display Groups First */}
+      {/* ✅ Display Groups First */}
       {groups.length > 0 && (
         <div className="group-chats">
-          <h4 className="section-title">Groups</h4>
-          {groups.map((group) => (
-            <div
-              key={group.id}
-              className="groupChat"
-              onClick={() => {
-                console.log("Clicked Group:", group);
-                onSelectGroup(group);
-              }}
-              role="button"
-              aria-label={`Open chat with group ${group.name}`}
-              tabIndex={0}
-              onKeyDown={(e) => e.key === "Enter" && onSelectGroup(group)}
-            >
-              {/* Group Avatar */}
-              <img
-                src={group.avatar || "/images/default-group.png"}
-                alt={`${group.name} group`}
-                className="group-avatar"
-              />
+          {groups.map((group) => {
+            const lastMessage = group.last_message || {};
+            return (
+              <div
+                key={group.id}
+                className="groupChat"
+                onClick={() => {
+                  console.log("Group Clicked:", group); // ✅ Debugging
+                  onSelectGroup(group);
+                }}
+                role="button"
+                aria-label={`Open chat with group ${group.name}`}
+                tabIndex={0}
+                onKeyDown={(e) => e.key === "Enter" && onSelectGroup(group)}
+              >
+                {/* ✅ Group Avatar */}
+                <img
+                  src={group.avatar || "/assets/default-group.png"}
+                  alt={`${group.name} group`}
+                  className="group-avatar"
+                />
 
-              {/* Chat Content */}
-              <div className="chatContent">
-                <span className="chatName">{group.name}</span>
-                <p className="lastMessage">
-                  {group.last_message ? `${group.last_message.sender.username}: ${group.last_message.text}` : "No messages yet"}
-                </p>
+                {/* ✅ Chat Content */}
+                <div className="chatContent">
+                  <span className="chatName">{group.name}</span>
+                  <p className="lastMessage">
+                    {lastMessage.sender?.username 
+                      ? `${lastMessage.sender.username}: ${lastMessage.text?.slice(0, 30) || "No messages yet"}...` 
+                      : "No messages yet"}
+                  </p>
+                </div>
+
+                {/* ✅ Show Last Message Time */}
+                <span className="messageTime">{formatTimestamp(lastMessage.timestamp)}</span>
               </div>
-
-              {/* Show Last Message Time */}
-              <span className="messageTime">{formatTimestamp(group.last_message?.timestamp)}</span>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 
-      {/* Display Individual Users */}
+      {/* ✅ Display Individual Users */}
       {users.length > 0 && (
         <div className="user-chats">
           <h4 className="section-title">Users</h4>
           {users.map((user) => {
-            const lastMessage = user.last_message?.text || "No messages yet";
-            const isSentByUser = user.last_message?.sender?.id === currentUser?.id;
+            const lastMessage = user.last_message || {};
+            const isSentByUser = currentUser && lastMessage.sender?.id === currentUser.id;
 
             return (
               <div
                 key={user.id}
                 className="userChat"
-                onClick={() => onSelectUser(user)}
+                onClick={() => {
+                  console.log("User Clicked:", user); // ✅ Debugging
+                  onSelectUser(user);
+                }}
                 role="button"
                 aria-label={`Open chat with ${user.username}`}
                 tabIndex={0}
                 onKeyDown={(e) => e.key === "Enter" && onSelectUser(user)}
               >
-                {/* Profile Picture */}
+                {/* ✅ Profile Picture */}
                 <img
-                  src={user.profile_picture || "/images/default-avatar.png"}
+                  src={user.profile_picture || "/assets/default-avatar.png"}
                   alt={`${user.username}'s profile`}
                   className="user-avatar"
                 />
 
-                {/* Chat Content */}
+                {/* ✅ Chat Content */}
                 <div className="chatContent">
                   <span className="chatName">{user.username}</span>
                   <p className={`lastMessage ${isSentByUser ? "sentMessage" : "receivedMessage"}`}>
-                    {isSentByUser ? `You: ${lastMessage}` : lastMessage}
+                    {isSentByUser 
+                      ? `You: ${lastMessage.text?.slice(0, 30) || "No messages yet"}...` 
+                      : lastMessage.text?.slice(0, 30) || "No messages yet"}
                   </p>
                 </div>
 
-                {/* Show Last Message Time */}
-                <span className="messageTime">{formatTimestamp(user.last_message?.timestamp)}</span>
+                {/* ✅ Show Last Message Time */}
+                <span className="messageTime">{formatTimestamp(lastMessage.timestamp)}</span>
               </div>
             );
           })}

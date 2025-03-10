@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import axios from "axios";
-import Navbar from "./Navbar";  // ✅ Import Navbar
+import Navbar from "./Navbar";  // ✅ Navbar at the top
 import Search from "./Search";
 import Chats from "./Chats";
 import "../pages/dashboard.css";
@@ -11,29 +11,34 @@ const Sidebar = ({ onSelectUser, onSelectGroup, currentUser }) => {
   const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const hasRedirected = useRef(false);
   const sidebarRef = useRef(null);
 
   useEffect(() => {
+    const controller = new AbortController(); // ✅ Local variable for aborting fetch
+
     const fetchUsersAndGroups = async () => {
       setLoading(true);
       setError(null);
+
       try {
         const token = localStorage.getItem("access_token");
         if (!token) {
-          setError("Authentication required. Redirecting to login...");
-          setTimeout(() => (window.location.href = "/login"), 2000);
+          if (!hasRedirected.current) {
+            hasRedirected.current = true;
+            setError("Authentication required. Redirecting to login...");
+            setTimeout(() => (window.location.href = "/login"), 2000);
+          }
           return;
         }
 
-        // Fetch Users
-        const userResponse = await axios.get("http://localhost:8000/api/users/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const headers = { Authorization: `Bearer ${token}` };
 
-        // Fetch Groups
-        const groupResponse = await axios.get("http://localhost:8000/api/groups/", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        // ✅ Fetch Users & Groups in Parallel with AbortController
+        const [userResponse, groupResponse] = await Promise.all([
+          axios.get("http://localhost:8000/api/users/", { headers, signal: controller.signal }),
+          axios.get("http://localhost:8000/api/groups/", { headers, signal: controller.signal }),
+        ]);
 
         if (!Array.isArray(userResponse.data) || !Array.isArray(groupResponse.data)) {
           throw new Error("Unexpected server response.");
@@ -42,22 +47,27 @@ const Sidebar = ({ onSelectUser, onSelectGroup, currentUser }) => {
         setUsers(userResponse.data.filter((user) => user.id !== currentUser?.id));
         setGroups(groupResponse.data);
       } catch (err) {
+        if (axios.isCancel(err)) return; // ✅ Prevent error if request was canceled
         console.error("🔴 Failed to fetch data:", err);
         setError(err.response?.status === 401 
           ? "Unauthorized. Please log in again." 
-          : "Failed to load users and groups. Try again later.");
+          : err.message || "Failed to load users and groups. Try again later.");
       } finally {
         setLoading(false);
       }
     };
 
     fetchUsersAndGroups();
+
+    return () => controller.abort(); // ✅ Cleanup: Cancel request on unmount
   }, [currentUser]);
 
+  // 🔹 Handle Search
   const handleSearch = useCallback((term) => {
     setSearchTerm(term.trim().toLowerCase());
   }, []);
 
+  // 🔹 Filter Users and Groups
   const filteredUsers = useMemo(() => {
     return searchTerm
       ? users.filter((user) => user.username.toLowerCase().includes(searchTerm))
@@ -72,7 +82,7 @@ const Sidebar = ({ onSelectUser, onSelectGroup, currentUser }) => {
 
   return (
     <div className="sidebar">
-      {/* ✅ Navbar is now inside Sidebar, appearing at the top */}
+      {/* ✅ Navbar included inside Sidebar */}
       <Navbar /> 
 
       <Search onSearch={handleSearch} />

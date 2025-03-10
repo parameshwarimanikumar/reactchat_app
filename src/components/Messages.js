@@ -28,8 +28,8 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
 
   // ✅ Scroll to bottom when a new message is added
   useEffect(() => {
-    if (autoScroll) {
-      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    if (messagesEndRef.current && autoScroll) {
+      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, autoScroll]);
 
@@ -38,7 +38,7 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
     if (!socket) return;
 
     const handleMessage = (message) => {
-      console.log("Received message:", message); // Debugging
+      console.log("Received message:", message);
       setMessages((prevMessages) => [...prevMessages, message]);
     };
 
@@ -65,9 +65,9 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
         {messages.length === 0 ? (
           <p className="no-messages">No messages yet. Start the conversation!</p>
         ) : (
-          messages.map((message) => (
+          messages.map((message, index) => (
             <Message
-              key={message.id || message.timestamp}
+              key={message.id || `msg-${index}`}
               message={message}
               currentUserId={currentUserId}
             />
