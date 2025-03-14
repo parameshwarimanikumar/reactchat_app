@@ -185,66 +185,67 @@ def create_group(request):
     return error_response(serializer.errors)
 
 
-# ✅ Update Group Icon
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
 @parser_classes([MultiPartParser, FormParser])
-def update_group_icon(request, group_id):
-    group = get_object_or_404(ChatGroup, id=group_id)
+def update_group_icon(request, group_name):
+    group = get_object_or_404(ChatGroup, name=group_name)
 
-    # ✅ Allow any group member to update the icon
+    # ✅ Only allow group members to update the icon
     if request.user not in group.members.all():
-        return error_response("Only group members can update the icon.", status.HTTP_403_FORBIDDEN)
+        return Response({"error": "Only group members can update the icon."}, status=status.HTTP_403_FORBIDDEN)
 
     icon = request.FILES.get("icon")
     if not icon:
-        return error_response("Group icon is required.")
+        return Response({"error": "Group icon is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     group.icon = icon
     group.save()
     return Response({"message": "Group icon updated successfully."}, status=status.HTTP_200_OK)
 
+
 # ✅ Remove User from Group
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
-def remove_user_from_group(request, group_id):
-    group = get_object_or_404(ChatGroup, id=group_id)
+def remove_user_from_group(request):
+    group_name = request.data.get("group_name", "").strip()
+    username = request.data.get("username", "").strip()
 
-    if group.admin != request.user:
-        return error_response("Only the group admin can remove members.", status.HTTP_403_FORBIDDEN)
+    if not group_name or not username:
+        return Response({"error": "Group name and username are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    user_id = request.data.get("user_id")
-    user_to_remove = get_object_or_404(CustomUser, id=user_id)
+    group = get_object_or_404(ChatGroup, name=group_name)
+    user_to_remove = get_object_or_404(CustomUser, username=username)
+
+    # ✅ Only group members can remove users
+    if request.user not in group.members.all():
+        return Response({"error": "Only group members can remove users."}, status=status.HTTP_403_FORBIDDEN)
+
+    # ✅ Prevent removing the group admin
+    if user_to_remove == group.admin:
+        return Response({"error": "You cannot remove the group admin."}, status=status.HTTP_403_FORBIDDEN)
 
     if user_to_remove not in group.members.all():
-        return error_response("User is not a member of this group.")
+        return Response({"error": "User is not a member of this group."}, status=status.HTTP_400_BAD_REQUEST)
 
     group.members.remove(user_to_remove)
-    return Response({"message": "User removed successfully."}, status=status.HTTP_200_OK)
+    return Response({"message": f"User '{username}' removed from '{group_name}' successfully."}, status=status.HTTP_200_OK)
+
 
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
-def delete_group(request):
-    group_name = request.data.get("name", "").strip()
-
-    if not group_name:
-        return Response({"error": "Group name is required."}, status=status.HTTP_400_BAD_REQUEST)
-
+def delete_group(request, group_name):  # ✅ Accepts group_name as a URL parameter
     group = get_object_or_404(ChatGroup, name=group_name)
 
-    print(f"Authenticated User: {request.user}")  # Debugging
-    print(f"Group Admin: {group.admin}")  # Debugging
+    # ✅ Ensure the user is part of the group before allowing deletion
+    if request.user not in group.members.all():
+        return Response({"error": "You must be a group member to delete it."}, status=status.HTTP_403_FORBIDDEN)
 
-    if group.admin != request.user:
-        return Response({"error": "Only the group admin can delete the group."}, status=status.HTTP_403_FORBIDDEN)
-
-    # Remove all users from the group before deleting
-    group.members.clear()  # Assuming ManyToManyField for members
-    
-    # Delete the group
+    # ✅ Clear members and delete the group
+    group.members.clear()
     group.delete()
 
-    return Response({"message": "Group and all members deleted successfully."}, status=status.HTTP_200_OK)
+    return Response({"message": f"Group '{group_name}' deleted successfully."}, status=status.HTTP_200_OK)
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])

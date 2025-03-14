@@ -5,19 +5,20 @@ const DeleteGroup = () => {
   const [groupName, setGroupName] = useState("");
 
   const handleDeleteGroup = async () => {
+    if (!groupName.trim()) {
+      alert("Please enter a group name.");
+      return;
+    }
+
     const token = localStorage.getItem("access_token");
 
     try {
-      await axios.delete("http://localhost:8000/api/groups/delete/", {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        data: { name: groupName }, // ✅ Send group name in request body
+      await axios.delete(`http://localhost:8000/api/groups/${groupName}/delete/`, {
+        headers: { Authorization: `Bearer ${token}` },
       });
 
-      alert("Group and all members deleted successfully!");
-      setGroupName(""); // Clear input after successful deletion
+      alert(`Group '${groupName}' deleted successfully!`);
+      setGroupName(""); // Clear input after success
     } catch (error) {
       console.error("Delete Group Error:", error.response);
       alert("Failed to delete group: " + (error.response?.data?.error || "Unknown error"));

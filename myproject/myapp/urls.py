@@ -15,12 +15,11 @@ urlpatterns = [
     path("delete_message/<int:message_id>/", views.delete_message, name="delete_message"),
 
     # ✅ Group Chat Endpoints
-    path("groups/", views.list_groups, name="list_groups"),  # List groups
-    path("groups/create/", views.create_group, name="create_group"),  # Create group
-    path("groups/<int:group_id>/messages/", views.get_group_messages, name="get_group_messages"),  # Get messages
-    path("groups/<int:group_id>/send_message/", views.send_group_message, name="send_group_message"),  # Send message
-    path("groups/<int:group_id>/update_icon/", views.update_group_icon, name="update_group_icon"),  # Update group icon
-    path("groups/<int:group_id>/remove_user/", views.remove_user_from_group, name="remove_user_from_group"),  # Remove user
-    path("groups/delete/", views.delete_group, name="delete_group"),  # Delete group by name
-
+    path("groups/", views.list_groups, name="list_groups"),
+    path("groups/create/", views.create_group, name="create_group"),
+    path("groups/<str:group_name>/delete/", views.delete_group, name="delete_group"),  # ✅ Moved Up
+    path("groups/<str:group_name>/messages/", views.get_group_messages, name="get_group_messages"),
+    path("groups/<str:group_name>/send_message/", views.send_group_message, name="send_group_message"),
+    path("groups/<str:group_name>/update_icon/", views.update_group_icon, name="update_group_icon"),
+    path("groups/remove_user/", views.remove_user_from_group, name="remove_user_from_group"),
 ]

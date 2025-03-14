@@ -35,15 +35,18 @@ const GroupChat = ({ currentUser }) => {
       socketRef.current.close();
     }
 
-    const socketUrl = `ws://localhost:8000/ws/chat/group/${selectedGroup.id}/`;
+    const socketUrl = `ws://localhost:8000/ws/group_chat/${selectedGroup.id}/`;  // ✅ FIXED URL
     socketRef.current = new WebSocket(socketUrl);
 
+    socketRef.current.onopen = () => console.log("✅ Group WebSocket Connected");
     socketRef.current.onmessage = (event) => {
+      console.log("📩 Received Group WebSocket Message:", event.data);
       const messageData = JSON.parse(event.data);
       setMessages((prevMessages) => [...prevMessages, messageData]);
     };
 
-    socketRef.current.onclose = () => console.log("WebSocket disconnected");
+    socketRef.current.onerror = (error) => console.error("❌ Group WebSocket Error:", error);
+    socketRef.current.onclose = () => console.log("⚠️ Group WebSocket Disconnected");
 
     return () => {
       if (socketRef.current) {
@@ -57,11 +60,12 @@ const GroupChat = ({ currentUser }) => {
     if (!newMessage.trim() || !socketRef.current || socketRef.current.readyState !== WebSocket.OPEN) return;
 
     const messageData = {
-      group: selectedGroup.id,
-      sender: currentUser.username,
-      text: newMessage,
+      group_id: selectedGroup.id,  // ✅ FIXED KEY
+      sender_id: currentUser.username,
+      message: newMessage,
     };
 
+    console.log("🚀 Sending Group WebSocket Message:", messageData);
     socketRef.current.send(JSON.stringify(messageData));
     setNewMessage("");
   };
@@ -87,8 +91,8 @@ const GroupChat = ({ currentUser }) => {
           <h3>{selectedGroup.name}</h3>
           <div className="messages">
             {messages.map((msg, index) => (
-              <div key={index} className={msg.sender === currentUser.username ? "message sent" : "message received"}>
-                <strong>{msg.sender}</strong>: {msg.text}
+              <div key={index} className={msg.sender_id === currentUser.username ? "message sent" : "message received"}>
+                <strong>{msg.sender_id}</strong>: {msg.message}
               </div>
             ))}
           </div>

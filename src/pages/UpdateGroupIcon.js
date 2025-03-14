@@ -6,36 +6,6 @@ const UpdateGroupIcon = () => {
   const [image, setImage] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchGroupId = async (name) => {
-    try {
-      const token = localStorage.getItem("access_token");
-      if (!token) {
-        alert("You must be logged in to update the group icon.");
-        return null;
-      }
-
-      const response = await axios.get(
-        `http://localhost:8000/api/groups/?name=${name}`,
-        { headers: { Authorization: `Bearer ${token}` } }
-      );
-
-      console.log("API Response:", response.data); // Debugging
-
-      if (Array.isArray(response.data) && response.data.length > 0) {
-        return response.data[0].id; // Assuming the API returns an array
-      } else if (response.data.id) {
-        return response.data.id; // If API returns a single object
-      } else {
-        alert("Group not found.");
-        return null;
-      }
-    } catch (error) {
-      console.error("Error fetching group ID:", error.response?.data || error.message);
-      alert("Failed to retrieve group ID.");
-      return null;
-    }
-  };
-
   const handleUpload = async () => {
     if (!groupName.trim()) {
       alert("Please enter a valid Group Name.");
@@ -49,12 +19,6 @@ const UpdateGroupIcon = () => {
 
     setLoading(true);
 
-    const groupId = await fetchGroupId(groupName);
-    if (!groupId) {
-      setLoading(false);
-      return;
-    }
-
     const formData = new FormData();
     formData.append("icon", image);
 
@@ -62,7 +26,7 @@ const UpdateGroupIcon = () => {
 
     try {
       const response = await axios.post(
-        `http://localhost:8000/api/groups/${groupId}/update_icon/`,
+        `http://localhost:8000/api/groups/${groupName}/update_icon/`,
         formData,
         {
           headers: {

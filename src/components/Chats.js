@@ -9,7 +9,7 @@ const Chats = ({
   currentUser 
 }) => {
 
-  // Format timestamps for better readability
+  // ✅ Format timestamps for better readability
   const formatTimestamp = (timestamp) => {
     if (!timestamp) return " ";
 
@@ -45,12 +45,14 @@ const Chats = ({
         <div className="group-chats">
           {groups.map((group) => {
             const lastMessage = group.last_message || {};
+            const senderName = lastMessage.sender?.username || "Unknown";
+
             return (
               <div
                 key={group.id}
                 className="groupChat"
                 onClick={() => {
-                  console.log("Group Clicked:", group); // ✅ Debugging
+                  console.log("Group Clicked:", group);
                   onSelectGroup(group);
                 }}
                 role="button"
@@ -69,8 +71,8 @@ const Chats = ({
                 <div className="chatContent">
                   <span className="chatName">{group.name}</span>
                   <p className="lastMessage">
-                    {lastMessage.sender?.username 
-                      ? `${lastMessage.sender.username}: ${lastMessage.text?.slice(0, 30) || "No messages yet"}...` 
+                    {lastMessage.text 
+                      ? `${senderName}: ${lastMessage.text.slice(0, 30)}...`
                       : "No messages yet"}
                   </p>
                 </div>
@@ -90,13 +92,13 @@ const Chats = ({
           {users.map((user) => {
             const lastMessage = user.last_message || {};
             const isSentByUser = currentUser && lastMessage.sender?.id === currentUser.id;
-
+            
             return (
               <div
                 key={user.id}
                 className="userChat"
                 onClick={() => {
-                  console.log("User Clicked:", user); // ✅ Debugging
+                  console.log("User Clicked:", user);
                   onSelectUser(user);
                 }}
                 role="button"
@@ -115,9 +117,11 @@ const Chats = ({
                 <div className="chatContent">
                   <span className="chatName">{user.username}</span>
                   <p className={`lastMessage ${isSentByUser ? "sentMessage" : "receivedMessage"}`}>
-                    {isSentByUser 
-                      ? `You: ${lastMessage.text?.slice(0, 30) || "No messages yet"}...` 
-                      : lastMessage.text?.slice(0, 30) || "No messages yet"}
+                    {lastMessage.text 
+                      ? isSentByUser 
+                        ? `You: ${lastMessage.text.slice(0, 30)}...`
+                        : lastMessage.text.slice(0, 30)
+                      : "No messages yet"}
                   </p>
                 </div>
 
