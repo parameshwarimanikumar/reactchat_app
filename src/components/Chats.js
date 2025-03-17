@@ -9,13 +9,11 @@ const Chats = ({
   currentUser 
 }) => {
 
-  // ✅ Format timestamps for better readability
+  // ✅ Format timestamps safely
   const formatTimestamp = (timestamp) => {
-    if (!timestamp) return " ";
+    if (!timestamp || isNaN(new Date(timestamp).getTime())) return "";
 
     const messageDate = new Date(timestamp);
-    if (isNaN(messageDate.getTime())) return " ";
-
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -43,9 +41,10 @@ const Chats = ({
       {/* ✅ Display Groups First */}
       {groups.length > 0 && (
         <div className="group-chats">
+          <h4 className="section-title">Groups</h4>
           {groups.map((group) => {
-            const lastMessage = group.last_message || {};
-            const senderName = lastMessage.sender?.username || "Unknown";
+            const lastMessage = group?.last_message || {};
+            const senderName = lastMessage?.sender?.username || "Unknown";
 
             return (
               <div
@@ -58,27 +57,26 @@ const Chats = ({
                 role="button"
                 aria-label={`Open chat with group ${group.name}`}
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && onSelectGroup(group)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelectGroup(group)}
               >
-                {/* ✅ Group Avatar */}
                 <img
-                  src={group.avatar || "/assets/default-group.png"}
+                  src={group.icon || "/assets/default-group.png"}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/assets/default-group.png";
+                  }}
                   alt={`${group.name} group`}
                   className="group-avatar"
                 />
-
-                {/* ✅ Chat Content */}
                 <div className="chatContent">
                   <span className="chatName">{group.name}</span>
                   <p className="lastMessage">
-                    {lastMessage.text 
+                    {lastMessage?.text 
                       ? `${senderName}: ${lastMessage.text.slice(0, 30)}...`
                       : "No messages yet"}
                   </p>
                 </div>
-
-                {/* ✅ Show Last Message Time */}
-                <span className="messageTime">{formatTimestamp(lastMessage.timestamp)}</span>
+                <span className="messageTime">{formatTimestamp(lastMessage?.timestamp)}</span>
               </div>
             );
           })}
@@ -90,9 +88,9 @@ const Chats = ({
         <div className="user-chats">
           <h4 className="section-title">Users</h4>
           {users.map((user) => {
-            const lastMessage = user.last_message || {};
+            const lastMessage = user?.last_message || {};
             const isSentByUser = currentUser && lastMessage.sender?.id === currentUser.id;
-            
+
             return (
               <div
                 key={user.id}
@@ -104,16 +102,17 @@ const Chats = ({
                 role="button"
                 aria-label={`Open chat with ${user.username}`}
                 tabIndex={0}
-                onKeyDown={(e) => e.key === "Enter" && onSelectUser(user)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && onSelectUser(user)}
               >
-                {/* ✅ Profile Picture */}
                 <img
                   src={user.profile_picture || "/assets/default-avatar.png"}
+                  onError={(e) => {
+                    e.target.onerror = null;
+                    e.target.src = "/assets/default-avatar.png";
+                  }}
                   alt={`${user.username}'s profile`}
                   className="user-avatar"
                 />
-
-                {/* ✅ Chat Content */}
                 <div className="chatContent">
                   <span className="chatName">{user.username}</span>
                   <p className={`lastMessage ${isSentByUser ? "sentMessage" : "receivedMessage"}`}>
@@ -124,8 +123,6 @@ const Chats = ({
                       : "No messages yet"}
                   </p>
                 </div>
-
-                {/* ✅ Show Last Message Time */}
                 <span className="messageTime">{formatTimestamp(lastMessage.timestamp)}</span>
               </div>
             );

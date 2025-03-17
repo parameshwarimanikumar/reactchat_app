@@ -156,23 +156,21 @@ def update_profile_picture(request):
 
     return error_response(serializer.errors)
 
-
 # ✅ List All Groups the User is a Member Of
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
 def list_groups(request):
+    """Retrieve groups where the user is a member."""
     name = request.GET.get("name", "").strip()
-    logger.info(f"Filtering groups by name: {name}")
-    
     groups = ChatGroup.objects.filter(members=request.user)
-    
+
     if name:
         groups = groups.filter(name__icontains=name)
-    
-    logger.info(f"Matching groups count: {groups.count()}")
 
-    serializer = ChatGroupSerializer(groups, many=True)
+    serializer = ChatGroupSerializer(groups, many=True, context={"request": request})
     return Response(serializer.data, status=status.HTTP_200_OK)
+
+
 # ✅ Create Group
 @api_view(["POST"])
 @permission_classes([IsAuthenticated])
@@ -277,5 +275,6 @@ def send_group_message(request, group_id):
 
     message = GroupMessage.objects.create(group=group, sender=request.user, content=content, file=file)
     serializer = GroupMessageSerializer(message, context={"request": request})
+
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)

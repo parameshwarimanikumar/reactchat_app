@@ -438,6 +438,13 @@ body {
   }
 }
 
+.group-avatar, .user-avatar {
+  width: 40px; /* Adjust size as needed */
+  height: 40px;
+  border-radius: 50%; /* Makes the image circular */
+  object-fit: cover; /* Ensures the image fills the area properly */
+  border: 2px solid #ddd; /* Optional: Adds a light border */
+}
 
 
 
