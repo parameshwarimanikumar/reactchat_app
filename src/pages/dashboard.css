@@ -438,6 +438,8 @@ body {
   }
 }
 
+/* group list */
+
 .group-avatar, .user-avatar {
   width: 40px; /* Adjust size as needed */
   height: 40px;
@@ -445,6 +447,22 @@ body {
   object-fit: cover; /* Ensures the image fills the area properly */
   border: 2px solid #ddd; /* Optional: Adds a light border */
 }
+
+.groupChat {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Ensures spacing between avatar and text */
+  padding: 10px;
+  cursor: pointer;
+  transition: background 0.3s ease-in-out;
+}
+
+.groupChat:hover {
+  background: var(--hover-bg);
+}
+
+
+
 
 
 

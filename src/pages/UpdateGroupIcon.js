@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./UpdateGroupIcon.css"; // Import CSS file
 
 const UpdateGroupIcon = () => {
   const [groupName, setGroupName] = useState("");
@@ -47,16 +48,22 @@ const UpdateGroupIcon = () => {
   };
 
   return (
-    <div>
+    <div className="update-group-container">
       <h2>Update Group Icon</h2>
       <input
         type="text"
         placeholder="Enter Group Name"
         value={groupName}
         onChange={(e) => setGroupName(e.target.value)}
+        className="input-field"
       />
-      <input type="file" accept="image/*" onChange={(e) => setImage(e.target.files[0])} />
-      <button onClick={handleUpload} disabled={loading}>
+      <input
+        type="file"
+        accept="image/*"
+        onChange={(e) => setImage(e.target.files[0])}
+        className="file-input"
+      />
+      <button className="upload-button" onClick={handleUpload} disabled={loading}>
         {loading ? "Uploading..." : "Upload"}
       </button>
     </div>

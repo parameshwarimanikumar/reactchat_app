@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
+import "./DeleteGroup.css"; // Import CSS file
 
 const DeleteGroup = () => {
   const [groupName, setGroupName] = useState("");
@@ -26,15 +27,18 @@ const DeleteGroup = () => {
   };
 
   return (
-    <div>
+    <div className="delete-group-container">
       <h2>Delete Group</h2>
       <input 
         type="text" 
         placeholder="Enter Group Name" 
         value={groupName} 
         onChange={(e) => setGroupName(e.target.value)} 
+        className="input-field"
       />
-      <button onClick={handleDeleteGroup}>Delete</button>
+      <button className="delete-button" onClick={handleDeleteGroup}>
+        Delete Group
+      </button>
     </div>
   );
 };

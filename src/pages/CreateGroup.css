@@ -1,0 +1,72 @@
+/* General Container */
+.create-group-container {
+    max-width: 450px;
+    margin: 40px auto;
+    padding: 20px;
+    background: #c2d6f4;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    text-align: center;
+  }
+  
+  /* Heading */
+  .create-group-container h2 {
+    color: #333;
+    font-size: 24px;
+    margin-bottom: 15px;
+  }
+  
+  /* Input Field */
+  .group-name-input {
+    width: 90%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 16px;
+  }
+  
+  /* Member List */
+  .member-list {
+    max-height: 180px;
+    overflow-y: auto;
+    background:  #c2d6f4;
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #40377a79;
+    text-align: left;
+  }
+  
+  /* Individual Member Item */
+  .member-item {
+    display: flex;
+    align-items: center;
+    padding: 8px;
+    cursor: pointer;
+  }
+  
+  .member-item input[type="checkbox"] {
+    margin-right: 10px;
+    transform: scale(1.2);
+    cursor: pointer;
+  }
+  
+  /* Button Styling */
+  .create-group-button {
+    width: 150px;
+    height: 45px;
+    background: #35619a;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 20px;
+    transition: background 0.3s ease-in-out;
+  }
+  
+  .create-group-button:hover {
+    background: #145dbf;
+  }
+  
