@@ -6,11 +6,11 @@ from channels.layers import get_channel_layer
 class ChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Handles WebSocket connection for private chat"""
+        self.username = self.scope["user"].username  # Get the authenticated user
         self.room_name = self.scope['url_route']['kwargs']['room_name']
         self.room_group_name = f'chat_{self.room_name}'
         self.channel_layer = get_channel_layer()
 
-        # Add to WebSocket group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
@@ -23,36 +23,37 @@ class ChatConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             message = data.get('message', '')
-            username = data.get('username', '')
 
-            if message and username:
+            if message:
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
                         'type': 'chat_message',
                         'message': message,
-                        'username': username,
+                        'username': self.username,  # Get from session
+                        'message_type': 'private',  # Identify private message
                     }
                 )
         except Exception as e:
             print(f"WebSocket error: {e}")  # Logs errors
 
     async def chat_message(self, event):
-        """Sends chat messages to WebSocket"""
+        """Sends private chat messages to WebSocket"""
         await self.send(text_data=json.dumps({
             'message': event['message'],
             'username': event['username'],
+            'message_type': event['message_type'],  # Ensure type is sent
         }))
 
 
 class GroupChatConsumer(AsyncWebsocketConsumer):
     async def connect(self):
         """Handles WebSocket connection for group chat"""
+        self.username = self.scope["user"].username
         self.group_id = self.scope['url_route']['kwargs']['group_id']
         self.room_group_name = f'group_chat_{self.group_id}'
         self.channel_layer = get_channel_layer()
 
-        # Add to WebSocket group
         await self.channel_layer.group_add(self.room_group_name, self.channel_name)
         await self.accept()
 
@@ -65,16 +66,16 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         try:
             data = json.loads(text_data)
             message = data.get('message', '')
-            username = data.get('username', '')
 
-            if message and username:
+            if message:
                 await self.channel_layer.group_send(
                     self.room_group_name,
                     {
                         'type': 'group_chat_message',
                         'message': message,
-                        'username': username,
-                        'group_id': self.group_id,  # Send group ID for filtering
+                        'username': self.username,
+                        'group_id': self.group_id,  # Ensure group ID is sent
+                        'message_type': 'group',  # Identify group message
                     }
                 )
         except Exception as e:
@@ -85,5 +86,6 @@ class GroupChatConsumer(AsyncWebsocketConsumer):
         await self.send(text_data=json.dumps({
             'message': event['message'],
             'username': event['username'],
-            'group_id': self.group_id,
+            'group_id': event['group_id'],
+            'message_type': event['message_type'],  # Ensure type is sent
         }))

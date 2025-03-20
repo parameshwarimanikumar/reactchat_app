@@ -461,6 +461,9 @@ body {
   background: var(--hover-bg);
 }
 
+.group-chats {
+  display: block !important;
+}
 
 
 

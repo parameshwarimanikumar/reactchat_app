@@ -5,7 +5,7 @@ const formatDate = (timestamp) => {
   return date.toDateString();
 };
 
-const Message = ({ message, currentUserId, previousMessage }) => {
+const Message = ({ message, currentUserId, isGroupChat, previousMessage }) => {
   const messagesEndRef = useRef(null);
 
   useEffect(() => {
@@ -16,7 +16,7 @@ const Message = ({ message, currentUserId, previousMessage }) => {
 
   const isSentByCurrentUser = message.sender_id === currentUserId;
   
-  // Show date only if it's different from the previous message
+  // ✅ Show date separator only if it's a new day
   const shouldShowDate =
     !previousMessage || formatDate(previousMessage.timestamp) !== formatDate(message.timestamp);
 
@@ -25,6 +25,9 @@ const Message = ({ message, currentUserId, previousMessage }) => {
       {shouldShowDate && <div className="date-separator">{formatDate(message.timestamp)}</div>}
 
       <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
+        {isGroupChat && !isSentByCurrentUser && (
+          <div className="sender-name">{message.sender?.username}</div>
+        )}
         {message.text}
       </div>
     </div>

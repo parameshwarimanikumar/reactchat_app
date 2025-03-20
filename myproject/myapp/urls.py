@@ -17,9 +17,9 @@ urlpatterns = [
     # ✅ Group Chat Endpoints
     path("groups/", views.list_groups, name="list_groups"),
     path("groups/create/", views.create_group, name="create_group"),
-    path("groups/<str:group_name>/delete/", views.delete_group, name="delete_group"),  # ✅ Moved Up
-    path("groups/<str:group_name>/messages/", views.get_group_messages, name="get_group_messages"),
-    path("groups/<str:group_name>/send_message/", views.send_group_message, name="send_group_message"),
+    path("groups/<str:group_name>/delete/", views.delete_group, name="delete_group"),  
+    path("groups/<int:group_id>/messages/", views.get_group_messages, name="get_group_messages"),  # 🔹 Changed to <int:group_id>
+    path("groups/<int:group_id>/send_message/", views.send_group_message, name="send_group_message"),  # 🔹 Changed to <int:group_id>
     path("groups/<str:group_name>/update_icon/", views.update_group_icon, name="update_group_icon"),
     path("groups/remove_user/", views.remove_user_from_group, name="remove_user_from_group"),
 ]

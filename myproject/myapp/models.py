@@ -1,12 +1,14 @@
 from django.contrib.auth.models import AbstractUser, BaseUserManager
 from django.db import models
 
+# ✅ Custom User Manager
 class CustomUserManager(BaseUserManager):
     def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError("The Email field must be set")
         email = self.normalize_email(email)
 
+        # Generate unique username if not provided
         if not extra_fields.get("username"):
             base_username = email.split('@')[0]
             username = base_username
@@ -36,6 +38,7 @@ class CustomUserManager(BaseUserManager):
 
         return self.create_user(email, password, **extra_fields)
 
+# ✅ Custom User Model
 class CustomUser(AbstractUser):
     email = models.EmailField(unique=True)
     profile_picture = models.ImageField(upload_to="profile_pictures/", null=True, blank=True, default="default.jpg")
@@ -49,17 +52,29 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username or self.email
 
+# ✅ Group Model
 class ChatGroup(models.Model):
     name = models.CharField(max_length=255, unique=True)
     icon = models.ImageField(upload_to="group_icons/", null=True, blank=True, default="default_group.jpg")
     members = models.ManyToManyField(CustomUser, related_name="chat_groups")
-    admin = models.ForeignKey(CustomUser, related_name="admin_groups", on_delete=models.CASCADE)  # ✅ Fix: Added admin field
+    admin = models.ForeignKey(CustomUser, related_name="admin_groups", on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return self.name
 
+    def add_member(self, user):
+        """Add a member to the group."""
+        if user not in self.members.all():
+            self.members.add(user)
+
+    def remove_member(self, user):
+        """Remove a member from the group."""
+        if user in self.members.all():
+            self.members.remove(user)
+
+# ✅ Private Messages
 class Message(models.Model):
     sender = models.ForeignKey(CustomUser, related_name="sent_messages", on_delete=models.CASCADE)
     receiver = models.ForeignKey(CustomUser, related_name="received_messages", on_delete=models.CASCADE)
@@ -71,6 +86,7 @@ class Message(models.Model):
         preview = (self.content[:20] + "...") if self.content else "File Attached"
         return f"{self.sender.username} → {self.receiver.username}: {preview}"
 
+# ✅ Group Messages (Only Group Members Can Send)
 class GroupMessage(models.Model):
     group = models.ForeignKey(ChatGroup, related_name="messages", on_delete=models.CASCADE)
     sender = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -81,3 +97,9 @@ class GroupMessage(models.Model):
     def __str__(self):
         preview = (self.content[:20] + "...") if self.content else "File Attached"
         return f"{self.sender.username} → {self.group.name}: {preview}"
+
+    def save(self, *args, **kwargs):
+        """Ensure only group members can send messages."""
+        if not self.group.members.filter(id=self.sender.id).exists():
+            raise ValueError("Only group members can send messages.")
+        super().save(*args, **kwargs)

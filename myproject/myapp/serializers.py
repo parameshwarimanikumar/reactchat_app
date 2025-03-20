@@ -24,24 +24,30 @@ class ChatGroupSerializer(serializers.ModelSerializer):
         members = validated_data.pop("members", [])  
         chat_group = ChatGroup.objects.create(**validated_data)
 
-        if validated_data.get("admin"):
-            chat_group.members.add(validated_data["admin"])
+        if chat_group.admin:
+            chat_group.members.add(chat_group.admin)
 
         chat_group.members.add(*members)  
         return chat_group
 
 class GroupMessageSerializer(serializers.ModelSerializer):
-    sender_username = serializers.CharField(source="sender.username", read_only=True)
+    sender_name = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GroupMessage
-        fields = ["id", "group", "sender", "sender_username", "content", "file", "file_url", "timestamp"]
+        fields = ["id", "group", "sender", "sender_name", "content", "file", "file_url", "timestamp"]
+
+    def get_sender_name(self, obj):
+        return obj.sender.get_full_name() or obj.sender.username
 
     def get_file_url(self, obj):
         if obj.file:
             request = self.context.get('request')
-            return request.build_absolute_uri(obj.file.url) if request else obj.file.url
+            try:
+                return request.build_absolute_uri(obj.file.url) if request else default_storage.url(obj.file.name)
+            except ValueError:
+                return None
         return None
 
 class UserSerializer(serializers.ModelSerializer):
@@ -74,7 +80,7 @@ class UserSerializer(serializers.ModelSerializer):
         if last_message:
             return {
                 "text": last_message.content if last_message.content else "File Attached",
-                "timestamp": format(last_message.timestamp, "g:i A")
+                "timestamp": last_message.timestamp.strftime("%I:%M %p") if last_message.timestamp else None
             }
         return None
 
@@ -95,8 +101,8 @@ class MessageSerializer(serializers.ModelSerializer):
     def get_file_url(self, obj):
         if obj.file:
             request = self.context.get('request')
-            return request.build_absolute_uri(obj.file.url) if request else default_storage.url(obj.file.name)
+            try:
+                return request.build_absolute_uri(obj.file.url) if request else default_storage.url(obj.file.name)
+            except ValueError:
+                return None
         return None
-
-    def create(self, validated_data):
-        return Message.objects.create(**validated_data)

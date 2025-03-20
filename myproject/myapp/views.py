@@ -108,26 +108,33 @@ def get_messages(request, user_id):
 
 
 # ✅ Send Message
-@api_view(["POST"])
-@permission_classes([IsAuthenticated])
-@parser_classes([MultiPartParser, FormParser])
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])  # Require authentication
 def send_message(request):
-    sender = request.user
-    receiver_id = request.data.get("recipient_id")
-    content = request.data.get("content", "").strip()
-    file = request.FILES.get("file")
+    user = request.user  # Get authenticated user
+    data = request.data
 
-    if not receiver_id or (not content and not file):
-        return error_response("Recipient and either message content or file are required.")
+    group_id = data.get('recipient')  # Group ID
+    message_content = data.get('message_content')
+    file = request.FILES.get('file')
 
-    receiver = get_object_or_404(CustomUser, id=receiver_id)
-    if sender == receiver:
-        return error_response("You cannot send messages to yourself.")
+    if not group_id or (not message_content and not file):
+        return Response({"error": "Recipient and either message content or file are required."}, status=status.HTTP_400_BAD_REQUEST)
 
-    message = Message.objects.create(sender=sender, receiver=receiver, content=content, file=file)
-    serializer = MessageSerializer(message, context={"request": request})
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    try:
+        chat_group = ChatGroup.objects.get(id=group_id)
+        message = GroupMessage.objects.create(
+            group=chat_group,
+            sender=user,
+            message_content=message_content,
+            file=file
+        )
+        serializer = GroupMessageSerializer(message)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
 
+    except ChatGroup.DoesNotExist:
+        return Response({"error": "Group not found."}, status=status.HTTP_404_NOT_FOUND)
 
 # ✅ Delete Message
 @api_view(["DELETE"])
@@ -166,7 +173,7 @@ def list_groups(request):
 
     if name:
         groups = groups.filter(name__icontains=name)
-
+ 
     serializer = ChatGroupSerializer(groups, many=True, context={"request": request})
     return Response(serializer.data, status=status.HTTP_200_OK)
 
@@ -276,5 +283,4 @@ def send_group_message(request, group_id):
     message = GroupMessage.objects.create(group=group, sender=request.user, content=content, file=file)
     serializer = GroupMessageSerializer(message, context={"request": request})
 
-
-    return Response(serializer.data, status=status.HTTP_201_CREATED)
+    return Response(serializer.data, status=status.HTTP_201_CREATED)  # ✅ Fixed missing return
