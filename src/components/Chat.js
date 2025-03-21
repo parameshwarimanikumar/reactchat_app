@@ -124,7 +124,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
               <React.Fragment key={id}>
                 {index === 0 ||
                 format(new Date(messages[index - 1]?.timestamp), "yyyy-MM-dd") !== format(msgTimestamp, "yyyy-MM-dd") ? (
-                  <div className="date-header" style={{ textAlign: "center" }}>
+                  <div className="date-header">
                     {isToday(msgTimestamp)
                       ? "Today"
                       : isYesterday(msgTimestamp)
@@ -134,6 +134,10 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                 ) : null}
 
                 <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
+                  {!isSentByCurrentUser && selectedUser.name && (
+                    <span className="sender-name">{sender_username}</span>
+                  )}
+
                   {file_url ? (
                     file_url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
                       <img src={file_url} alt="Uploaded" className="message-img" />
@@ -148,9 +152,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                   <span className="timestamp">{format(msgTimestamp, "hh:mm a")}</span>
 
                   {isSentByCurrentUser && (
-                    <button className="delete-btn" onClick={() => handleDeleteMessage(id)}>
-                      ❌
-                    </button>
+                    <button className="delete-btn" onClick={() => handleDeleteMessage(id)}>❌</button>
                   )}
                 </div>
               </React.Fragment>

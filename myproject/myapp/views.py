@@ -109,33 +109,55 @@ def get_messages(request, user_id):
 
 # ✅ Send Message
 
-@api_view(['POST'])
+@api_view(["POST"])
 @permission_classes([IsAuthenticated])  # Require authentication
 def send_message(request):
-    user = request.user  # Get authenticated user
+    user = request.user  # Get the authenticated user
     data = request.data
 
-    group_id = data.get('recipient')  # Group ID
-    message_content = data.get('message_content')
-    file = request.FILES.get('file')
+    # Get recipient (group_id or recipient_id)
+    group_id = data.get("group_id")  # If it's a group chat
+    recipient_id = data.get("recipient_id")  # If it's a direct message
+    message_content = data.get("content")
+    file = request.FILES.get("file")
 
-    if not group_id or (not message_content and not file):
-        return Response({"error": "Recipient and either message content or file are required."}, status=status.HTTP_400_BAD_REQUEST)
+    # Ensure we have a valid recipient (either group or user)
+    if not group_id and not recipient_id:
+        return Response({"error": "Recipient is required (group_id or recipient_id)."}, status=status.HTTP_400_BAD_REQUEST)
+
+    if not message_content and not file:
+        return Response({"error": "Either message content or a file is required."}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        chat_group = ChatGroup.objects.get(id=group_id)
-        message = GroupMessage.objects.create(
-            group=chat_group,
-            sender=user,
-            message_content=message_content,
-            file=file
-        )
-        serializer = GroupMessageSerializer(message)
+        if group_id:
+            # Handle group messages
+            chat_group = ChatGroup.objects.get(id=group_id)
+            message = GroupMessage.objects.create(
+                group=chat_group,
+                sender=user,
+                content=message_content,
+                file=file
+            )
+            serializer = GroupMessageSerializer(message, context={"request": request})
+        else:
+            # Handle direct messages
+            recipient = CustomUser.objects.get(id=recipient_id)
+            message = Message.objects.create(
+                sender=user,
+                receiver=recipient,
+                content=message_content,
+                file=file
+            )
+            serializer = MessageSerializer(message, context={"request": request})
+
         return Response(serializer.data, status=status.HTTP_201_CREATED)
 
     except ChatGroup.DoesNotExist:
         return Response({"error": "Group not found."}, status=status.HTTP_404_NOT_FOUND)
-
+    except CustomUser.DoesNotExist:
+        return Response({"error": "User not found."}, status=status.HTTP_404_NOT_FOUND)
+    except Exception as e:
+        return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 # ✅ Delete Message
 @api_view(["DELETE"])
 @permission_classes([IsAuthenticated])
