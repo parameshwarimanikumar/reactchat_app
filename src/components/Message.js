@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import React from "react";
 
 const formatDate = (timestamp) => {
   const date = new Date(timestamp);
@@ -6,29 +6,23 @@ const formatDate = (timestamp) => {
 };
 
 const Message = ({ message, currentUserId, isGroupChat, previousMessage }) => {
-  const messagesEndRef = useRef(null);
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
-    }
-  }, []);
-
   const isSentByCurrentUser = message.sender_id === currentUserId;
-  
+
   // ✅ Show date separator only if it's a new day
   const shouldShowDate =
     !previousMessage || formatDate(previousMessage.timestamp) !== formatDate(message.timestamp);
 
   return (
-    <div className="message-wrapper" ref={messagesEndRef}>
+    <div className="message-wrapper">
       {shouldShowDate && <div className="date-separator">{formatDate(message.timestamp)}</div>}
 
       <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
+        {/* ✅ Display sender name in group chats */}
         {isGroupChat && !isSentByCurrentUser && (
-          <div className="sender-name">{message.sender?.username}</div>
+          <div className="sender-name">{message.sender?.username || "Unknown"}</div>
         )}
-        {message.text}
+        <p className="message-content">{message.text}</p>
+        <span className="timestamp">{new Date(message.timestamp).toLocaleTimeString()}</span>
       </div>
     </div>
   );

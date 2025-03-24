@@ -5,12 +5,11 @@ import "../pages/dashboard.css";
 
 const Messages = ({ selectedUser, currentUserId, socket }) => {
   const [messages, setMessages] = useState([]);
-  const [autoScroll, setAutoScroll] = useState(true);
   const messagesEndRef = useRef(null);
   const messagesContainerRef = useRef(null);
   const [showScrollButton, setShowScrollButton] = useState(false);
 
-  // ✅ Fetch previous messages based on user type (private vs. group chat)
+  // ✅ Fetch messages from API
   useEffect(() => {
     if (!selectedUser?.id) return;
 
@@ -28,14 +27,14 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
     };
 
     fetchMessages();
-  }, [selectedUser?.id, selectedUser?.isGroup]); // ✅ FIXED: Added isGroup to dependencies
+  }, [selectedUser?.id, selectedUser?.isGroup]);
 
-  // ✅ Scroll to bottom when new messages arrive (if autoScroll is enabled)
+  // ✅ Scroll to bottom when new messages arrive
   useEffect(() => {
-    if (messagesEndRef.current && autoScroll) {
+    if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
-  }, [messages, autoScroll]);
+  }, [messages]);
 
   // ✅ Handle incoming WebSocket messages
   useEffect(() => {
@@ -44,7 +43,6 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
     const handleMessage = (message) => {
       console.log("Received message:", message);
 
-      // Check if the message is for the selected user/group
       if (
         (selectedUser?.isGroup && message.group_id === selectedUser.id) ||
         (!selectedUser?.isGroup && message.sender_id === selectedUser.id)
@@ -60,12 +58,11 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
     };
   }, [socket, selectedUser]);
 
-  // ✅ Show the scroll-to-bottom button when the user scrolls up
+  // ✅ Handle scrolling behavior
   const handleScroll = () => {
     if (messagesContainerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = messagesContainerRef.current;
       const isAtBottom = scrollTop + clientHeight >= scrollHeight - 50;
-      setAutoScroll(isAtBottom);
       setShowScrollButton(!isAtBottom);
     }
   };
@@ -95,7 +92,6 @@ const Messages = ({ selectedUser, currentUserId, socket }) => {
           className="scroll-to-bottom"
           onClick={() => {
             messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-            setAutoScroll(true);
           }}
         >
           ↓

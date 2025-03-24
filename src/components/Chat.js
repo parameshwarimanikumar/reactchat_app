@@ -116,7 +116,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
         ) : (
           messages.map((msg, index) => {
             if (!msg) return null;
-            const { id, sender_username, file_url, content, timestamp } = msg;
+            const { id, sender_username, sender_name, file_url, content, timestamp } = msg;
             const msgTimestamp = timestamp ? new Date(timestamp) : new Date();
             const isSentByCurrentUser = sender_username !== selectedUser.username;
 
@@ -125,19 +125,23 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                 {index === 0 ||
                 format(new Date(messages[index - 1]?.timestamp), "yyyy-MM-dd") !== format(msgTimestamp, "yyyy-MM-dd") ? (
                   <div className="date-header">
-                    {isToday(msgTimestamp)
-                      ? "Today"
-                      : isYesterday(msgTimestamp)
-                      ? "Yesterday"
-                      : format(msgTimestamp, "dd MMM yyyy")}
+                    <center>
+                      {isToday(msgTimestamp)
+                        ? "Today"
+                        : isYesterday(msgTimestamp)
+                        ? "Yesterday"
+                        : format(msgTimestamp, "dd MMM yyyy")}
+                    </center>
                   </div>
                 ) : null}
 
                 <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
+                  {/* ✅ Add Sender Name for Group Chats */}
                   {!isSentByCurrentUser && selectedUser.name && (
-                    <span className="sender-name">{sender_username}</span>
+                    <strong className="sender-name">{sender_name || sender_username}</strong>
                   )}
 
+                  {/* ✅ Show Text or File */}
                   {file_url ? (
                     file_url.match(/\.(jpeg|jpg|png|gif)$/i) ? (
                       <img src={file_url} alt="Uploaded" className="message-img" />
