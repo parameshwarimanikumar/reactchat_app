@@ -8,6 +8,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
   const [messages, setMessages] = useState([]);
   const [message, setMessage] = useState("");
   const [selectedFile, setSelectedFile] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false); // Loading state for message deletion
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -26,6 +27,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
       setMessages(response.data.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp)));
     } catch (error) {
       console.error("❌ Failed to fetch messages:", error.response?.data || error.message);
+      setMessages([]); // Optionally clear messages if fetching fails
     }
   }, [selectedUser]);
 
@@ -83,16 +85,23 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
   const handleFileChange = (event) => {
     const file = event.target.files[0];
     if (!file) return;
+    if (file.size > 5 * 1024 * 1024) { // Max file size: 5MB
+      alert("File is too large.");
+      return;
+    }
     setSelectedFile(file);
   };
 
   // ✅ Handle deleting messages
   const handleDeleteMessage = async (messageId) => {
+    setIsDeleting(true); // Set loading state for deletion
     try {
       await api.delete(`delete_message/${messageId}/`);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     } catch (error) {
       console.error("❌ Failed to delete message:", error.response?.data || error.message);
+    } finally {
+      setIsDeleting(false); // Reset loading state
     }
   };
 
@@ -104,8 +113,10 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
     <div className="chat-container">
       <div className="chat-header">
         <div className="user-details">
-          {selectedUser.profile_picture && (
+          {selectedUser.profile_picture ? (
             <img src={selectedUser.profile_picture} alt="Profile" className="avatar" />
+          ) : (
+            <div className="default-avatar">No Avatar</div>
           )}
           <h3>{selectedUser.username || selectedUser.name}</h3>
         </div>
@@ -137,11 +148,10 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                 ) : null}
 
                 <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
-                 {/* ✅ Add Sender Name for Group Chats */}
+                  {/* ✅ Add Sender Name for Group Chats */}
                   {!isSentByCurrentUser && selectedUser.name && (
                     <strong className="sender-name">{sender_name || sender_username}</strong>
                   )}
-                  
 
                   {/* ✅ Show Text or File */}
                   {file_url ? (
@@ -157,7 +167,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                   )}
                   <span className="timestamp">{format(msgTimestamp, "hh:mm a")}</span>
 
-                  {isSentByCurrentUser && (
+                  {isSentByCurrentUser && !isDeleting && (
                     <button className="delete-btn" onClick={() => handleDeleteMessage(id)}>❌</button>
                   )}
                 </div>

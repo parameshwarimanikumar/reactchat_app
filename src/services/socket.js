@@ -1,8 +1,20 @@
-import { io } from 'socket.io-client';
+const socket = new WebSocket(`ws://localhost:8000/ws/chat/room_name/`);
 
-const socket = io('ws://localhost:8000/ws/chat/', {
-    transports: ['websocket'],  // Ensures WebSocket-only transport
-    withCredentials: true,      // Allows authentication cookies
-});
+socket.onopen = () => {
+    console.log("Connected to WebSocket");
+};
+
+socket.onmessage = (event) => {
+    const data = JSON.parse(event.data);
+    console.log("Message received:", data);
+};
+
+socket.onerror = (error) => {
+    console.error("WebSocket error:", error);
+};
+
+socket.onclose = () => {
+    console.log("WebSocket disconnected");
+};
 
 export default socket;
