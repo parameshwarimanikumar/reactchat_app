@@ -466,32 +466,34 @@ body {
 }
 
 /* Group Message Container */
+/* General message styling */
 .group-message {
-  display: flex;
-  flex-direction: column;
   max-width: 70%;
   word-wrap: break-word;
-  position: relative;
-  line-height: 1.5;
   padding: 10px;
+  margin: 5px 0;
   border-radius: 12px;
+  display: flex;
+  flex-direction: column;
 }
 
-/* Group Sent Messages */
+/* Sent messages (align right) */
 .group-message.sent {
   align-self: flex-end;
-  background-color: var(--message-sent-bg);
-  border-radius: 12px 12px 0 12px;
   text-align: right;
+  background-color: #DCF8C6; /* Light green (WhatsApp style) */
+  border-radius: 12px 12px 0 12px;
 }
 
-/* Group Received Messages */
+/* Received messages (align left) */
 .group-message.received {
   align-self: flex-start;
-  background-color: var(--message-received-bg);
+  text-align: left;
+  background-color: #ffffff; /* White for received messages */
   border-radius: 12px 12px 12px 0;
-  border: 1px solid #ddd;
 }
+
+
 
 /* Sender name in group messages */
 .group-message .sender-name {

@@ -11,7 +11,7 @@ const AuthContextProvider = ({ children }) => {
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        const token = localStorage.getItem("access_token"); // Get token
+        const token = localStorage.getItem("access_token");
         if (!token) throw new Error("No authentication token found.");
 
         const response = await axios.get("http://localhost:8000/api/current_user/", {
@@ -19,8 +19,10 @@ const AuthContextProvider = ({ children }) => {
         });
 
         setCurrentUser(response.data);
+        localStorage.setItem("userId", response.data.id); // ✅ Store user ID for quick access
       } catch (error) {
         setError(error.response?.data?.detail || error.message);
+        logout(); // ✅ Auto-logout if token is invalid
       } finally {
         setLoading(false);
       }
@@ -31,6 +33,7 @@ const AuthContextProvider = ({ children }) => {
 
   const logout = () => {
     localStorage.removeItem("access_token");
+    localStorage.removeItem("userId");
     setCurrentUser(null);
   };
 

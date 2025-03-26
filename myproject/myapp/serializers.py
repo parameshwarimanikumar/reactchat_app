@@ -33,22 +33,24 @@ class ChatGroupSerializer(serializers.ModelSerializer):
 
 # ✅ Group Message Serializer
 class GroupMessageSerializer(serializers.ModelSerializer):
+    sender_id = serializers.ReadOnlyField(source="sender.id")  # ✅ Ensure sender ID is included
     sender_name = serializers.SerializerMethodField()
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = GroupMessage
-        fields = ["id", "group", "sender", "sender_name", "content", "file", "file_url", "timestamp"]
+        fields = ["id", "group", "sender", "sender_id", "sender_name", "content", "file", "file_url", "timestamp"]
 
     def get_sender_name(self, obj):
         return obj.sender.get_full_name().strip() or obj.sender.username
 
     def get_file_url(self, obj):
         if obj.file:
-            request = self.context.get('request')
+            request = self.context.get("request")
             file_url = obj.file.url
             return request.build_absolute_uri(file_url) if request else default_storage.url(obj.file.name)
         return None
+
 
 
 # ✅ User Serializer
@@ -97,13 +99,15 @@ class UpdateProfilePictureSerializer(serializers.ModelSerializer):
 
 # ✅ Message Serializer
 class MessageSerializer(serializers.ModelSerializer):
+    sender_id = serializers.IntegerField(source='sender.id', read_only=True)  # ✅ Add sender_id
+    receiver_id = serializers.IntegerField(source='receiver.id', read_only=True)  # ✅ Add receiver_id
     sender_username = serializers.CharField(source='sender.username', read_only=True)
     receiver_username = serializers.CharField(source='receiver.username', read_only=True)
     file_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Message
-        fields = ['id', 'sender', 'receiver', 'content', 'file', 'timestamp', 'sender_username', 'receiver_username', 'file_url']
+        fields = ["id", "sender", "sender_id", "receiver", "receiver_id", "content", "file", "timestamp", "sender_username", "receiver_username", "file_url"]
 
     def get_file_url(self, obj):
         if obj.file:

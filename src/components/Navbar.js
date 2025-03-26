@@ -61,7 +61,6 @@ const Navbar = () => {
 
   return (
     <div className="navbar">
-      {/* Left Side: User Info */}
       <div className="user-info">
         {loading ? (
           <span>Loading...</span>
@@ -79,7 +78,6 @@ const Navbar = () => {
         )}
       </div>
 
-      {/* Right Side: Dropdown Menu */}
       <div className="menu-container" ref={menuRef}>
         <FiMoreVertical className="menu-icon" onClick={() => setMenuOpen(!menuOpen)} />
         {menuOpen && (

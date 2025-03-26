@@ -87,10 +87,10 @@ def current_user(request):
     profile_picture_url = request.build_absolute_uri(user.profile_picture.url) if user.profile_picture else None
 
     return Response({
+        "id": user.id,  # 🔹 Add this line
         "username": user.username,
         "profile_picture": profile_picture_url,
     })
-
 
 # ✅ Get Messages Between Users
 @api_view(["GET"])

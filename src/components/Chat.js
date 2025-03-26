@@ -77,6 +77,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
       console.error("❌ Failed to send message:", error.response?.data || error.message);
     }
   };
+  console.log("currentuser:", currentUserId);
 
   // ✅ Handle file uploads
   const handleFileChange = (event) => {
@@ -136,10 +137,11 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
                 ) : null}
 
                 <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
-                  {/* ✅ Add Sender Name for Group Chats */}
+                 {/* ✅ Add Sender Name for Group Chats */}
                   {!isSentByCurrentUser && selectedUser.name && (
                     <strong className="sender-name">{sender_name || sender_username}</strong>
                   )}
+                  
 
                   {/* ✅ Show Text or File */}
                   {file_url ? (
