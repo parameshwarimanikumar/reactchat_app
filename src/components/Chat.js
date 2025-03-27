@@ -112,14 +112,26 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
   return (
     <div className="chat-container">
       <div className="chat-header">
-        <div className="user-details">
-          {selectedUser.profile_picture ? (
-            <img src={selectedUser.profile_picture} alt="Profile" className="avatar" />
-          ) : (
-            <div className="default-avatar">No Avatar</div>
-          )}
-          <h3>{selectedUser.username || selectedUser.name}</h3>
-        </div>
+      <div className="user-details">
+  {/* ✅ Show Group Icon if it's a Group Chat */}
+  {selectedUser.name ? (
+    <img 
+      src={selectedUser.icon} 
+      alt="Group Icon" 
+      className="avatar"
+      onError={(e) => e.target.src = Img} // Fallback image
+    />
+  ) : (
+    // ✅ Show User Profile Picture for 1-on-1 Chat
+    selectedUser.profile_picture ? (
+      <img src={selectedUser.profile_picture} alt="Profile" className="avatar" />
+    ) : (
+      <div className="default-avatar">No Avatar</div>
+    )
+  )}
+  <h3>{selectedUser.username || selectedUser.name}</h3>
+</div>
+
       </div>
 
       <div className="chat-messages">
@@ -130,7 +142,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
             if (!msg) return null;
             const { id, sender_username, sender_name, file_url, content, timestamp } = msg;
             const msgTimestamp = timestamp ? new Date(timestamp) : new Date();
-            const isSentByCurrentUser = sender_username !== selectedUser.username;
+            const isSentByCurrentUser = msg.sender_id === currentUserId;
 
             return (
               <React.Fragment key={id}>
@@ -149,9 +161,10 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
 
                 <div className={`message ${isSentByCurrentUser ? "sent" : "received"}`}>
                   {/* ✅ Add Sender Name for Group Chats */}
-                  {!isSentByCurrentUser && selectedUser.name && (
+                  {selectedUser.name && (
                     <strong className="sender-name">{sender_name || sender_username}</strong>
                   )}
+
 
                   {/* ✅ Show Text or File */}
                   {file_url ? (
