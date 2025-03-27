@@ -1,0 +1,70 @@
+/* Add User to Group Styles */
+
+.add-user-container {
+  max-width: 450px;
+  margin: 50px auto;
+  padding: 20px;
+  background: #f0f4ff; /* Softer background color */
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  text-align: center;
+}
+
+.add-user-container h2 {
+  margin-bottom: 15px;
+  color: #333;
+  font-size: 22px;
+}
+
+/* Input & Select Styles */
+.add-user-container select,
+.add-user-container input {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 2px solid #7791cb;
+  border-radius: 6px;
+  font-size: 16px;
+  transition: border-color 0.3s ease-in-out;
+}
+
+.add-user-container select:focus,
+.add-user-container input:focus {
+  border-color: #7791cb;
+  outline: none;
+}
+
+/* Button Styles */
+.add-user-container button {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  background-color: #517cc0;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.3s ease-in-out;
+}
+
+.add-user-container button:hover {
+  background-color: #3965ac;
+}
+
+/* Message Style */
+.message {
+  color: #161414;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Back Button */
+.back-button {
+  margin-top: 12px;
+  background-color: #007bff;
+  font-size: 14px;
+}
+
+.back-button:hover {
+  background-color: #0056b3;
+}

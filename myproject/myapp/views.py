@@ -306,3 +306,45 @@ def send_group_message(request, group_id):
     serializer = GroupMessageSerializer(message, context={"request": request})
 
     return Response(serializer.data, status=status.HTTP_201_CREATED)  # ✅ Fixed missing return
+
+#delete group message
+
+@api_view(["DELETE"])
+@permission_classes([IsAuthenticated])
+def delete_group_message(request, message_id):
+    """
+    Delete a group message if the sender is the authenticated user.
+    """
+    message = get_object_or_404(GroupMessage, id=message_id)
+
+    if message.sender != request.user:
+        return Response({"error": "You can only delete messages that you sent."}, status=status.HTTP_403_FORBIDDEN)
+
+    message.delete()
+    return Response({"message": "Group message deleted successfully."}, status=status.HTTP_200_OK)
+
+#add user in group 
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def add_user_to_group(request):
+    """Allows an authenticated user (usually an admin) to add a member to a group."""
+    print("Received Data:", request.data)  # Debugging
+    
+    group_name = request.data.get("group_name", "").strip()
+    username = request.data.get("username", "").strip()
+
+    if not group_name or not username:
+        return error_response("Group name and username are required.", status.HTTP_400_BAD_REQUEST)
+    
+    group = get_object_or_404(ChatGroup, name=group_name)
+    user_to_add = get_object_or_404(CustomUser, username=username)
+
+    if request.user not in group.members.all():
+        return error_response("Only group members can add users.", status.HTTP_403_FORBIDDEN)
+
+    if user_to_add in group.members.all():
+        return error_response("User is already in the group.", status.HTTP_400_BAD_REQUEST)
+
+    group.members.add(user_to_add)
+    return Response({"message": f"User '{username}' added to '{group_name}' successfully."}, status=status.HTTP_200_OK)

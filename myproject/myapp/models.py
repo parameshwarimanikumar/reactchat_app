@@ -93,6 +93,8 @@ class GroupMessage(models.Model):
     content = models.TextField(blank=True, null=True)
     file = models.FileField(upload_to="group_uploads/", blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
+    is_deleted = models.BooleanField(default=False)  # New field
+
 
     def __str__(self):
         preview = (self.content[:20] + "...") if self.content else "File Attached"

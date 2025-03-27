@@ -87,6 +87,7 @@ const Navbar = () => {
             <button onClick={() => navigate('/update-group-icon')}>Update Group Icon</button>
             <button onClick={() => navigate('/remove-user')}>Remove User from Group</button>
             <button onClick={() => navigate('/delete-group')}>Remove Group</button>
+            <button onClick={() => navigate('/add-user-to-group')}>Add User to Group</button> {/* 🔹 NEW */}
             <button onClick={handleLogout}>Logout</button>
           </div>
         )}

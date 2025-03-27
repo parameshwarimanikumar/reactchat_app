@@ -95,8 +95,13 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
   // ✅ Handle deleting messages
   const handleDeleteMessage = async (messageId) => {
     setIsDeleting(true); // Set loading state for deletion
+  
     try {
-      await api.delete(`delete_message/${messageId}/`);
+      const url = selectedUser.name
+        ? `delete_group_message/${messageId}/`  // 🔹 Delete Group Message
+        : `delete_message/${messageId}/`;      // 🔹 Delete Private Message
+  
+      await api.delete(url);
       setMessages((prev) => prev.filter((msg) => msg.id !== messageId));
     } catch (error) {
       console.error("❌ Failed to delete message:", error.response?.data || error.message);
@@ -104,6 +109,7 @@ const Chat = ({ selectedUser, currentUserId, socket }) => {
       setIsDeleting(false); // Reset loading state
     }
   };
+  
 
   if (!selectedUser) {
     return <div className="chat-container">Please select a user or group to start chatting</div>;
